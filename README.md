@@ -44,7 +44,7 @@ This starter includes:
 
 ## Submission
 
-Submit a **5-10 minute video** walking through your application and highlighting key features. Upload to Google Drive and share with **adam@concentrate.ai**.
+Submit a **5-10 minute video** walking through your application and highlighting key features. Upload to Google Drive and share with **jobs@concentrate.ai**.
 
 Your video should cover:
 - Application walkthrough (UI and features)
@@ -54,4 +54,4 @@ Your video should cover:
 
 ## Questions?
 
-If you have any questions about the requirements, please reach out to adam@concentrate.ai.
+If you have any questions about the requirements, please reach out to jobs@concentrate.ai.
