@@ -54,6 +54,9 @@ export interface Submission {
   student_name: string;
   content: string;
   submitted_at: string;
+  score?: number | null;
+  feedback?: string | null;
+  graded_at?: string | null;
 }
 
 export interface Grade {

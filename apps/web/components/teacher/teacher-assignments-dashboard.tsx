@@ -3,14 +3,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AssignmentForm } from '@/components/teacher/assignment-form';
 import { AssignmentTable } from '@/components/teacher/assignment-table';
-import { SubmissionsPanel } from '@/components/teacher/grade-form';
 import { api } from '@/lib/api';
 import type { ClassItem } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 
 export function TeacherAssignmentsDashboard() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
-  const [assignmentId, setAssignmentId] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
   const loadClasses = useCallback(() => {
@@ -39,15 +37,7 @@ export function TeacherAssignmentsDashboard() {
           setRefreshKey((k) => k + 1);
         }}
       />
-      <AssignmentTable
-        gradingId={assignmentId}
-        onGrade={setAssignmentId}
-        refreshKey={refreshKey}
-      />
-      <SubmissionsPanel
-        assignmentId={assignmentId}
-        onPublish={() => setRefreshKey((k) => k + 1)}
-      />
+      <AssignmentTable refreshKey={refreshKey} />
     </div>
   );
 }

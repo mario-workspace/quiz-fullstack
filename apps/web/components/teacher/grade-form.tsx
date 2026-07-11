@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,9 +16,14 @@ interface GradeFormProps {
 }
 
 export function GradeForm({ submission, onGraded }: GradeFormProps) {
-  const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState('');
+  const [score, setScore] = useState(submission.score ?? 0);
+  const [feedback, setFeedback] = useState(submission.feedback ?? '');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setScore(submission.score ?? 0);
+    setFeedback(submission.feedback ?? '');
+  }, [submission]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,6 +45,8 @@ export function GradeForm({ submission, onGraded }: GradeFormProps) {
       setLoading(false);
     }
   }
+
+  const isUpdate = submission.score != null;
 
   return (
     <form
@@ -62,7 +70,7 @@ export function GradeForm({ submission, onGraded }: GradeFormProps) {
       </div>
       <div className="flex items-end">
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? 'Saving...' : 'Submit Grade'}
+          {loading ? 'Saving...' : isUpdate ? 'Update Grade' : 'Submit Grade'}
         </Button>
       </div>
     </form>
@@ -72,9 +80,14 @@ export function GradeForm({ submission, onGraded }: GradeFormProps) {
 interface SubmissionsPanelProps {
   assignmentId: string;
   onPublish?: () => void;
+  showPublish?: boolean;
 }
 
-export function SubmissionsPanel({ assignmentId, onPublish }: SubmissionsPanelProps) {
+export function SubmissionsPanel({
+  assignmentId,
+  onPublish,
+  showPublish = true,
+}: SubmissionsPanelProps) {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -128,47 +141,65 @@ export function SubmissionsPanel({ assignmentId, onPublish }: SubmissionsPanelPr
           <Button onClick={loadSubmissions} disabled={loading || !assignmentId}>
             {loading ? 'Loading...' : 'Load Submissions'}
           </Button>
-          <Button variant="outline" onClick={publish} disabled={!assignmentId}>
-            Publish Assignment
-          </Button>
+          {showPublish && (
+            <Button variant="outline" onClick={publish} disabled={!assignmentId}>
+              Publish Assignment
+            </Button>
+          )}
         </div>
         <div className="space-y-3">
-          {submissions.map((s) => (
-            <div key={s.id} className="rounded-lg border border-border p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium">{s.student_name}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{s.content}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Submitted {new Date(s.submitted_at).toLocaleString()}
-                  </p>
+          {submissions.map((s) => {
+            const graded = s.score != null;
+            return (
+              <div key={s.id} className="rounded-lg border border-border p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium">{s.student_name}</p>
+                      {graded && (
+                        <Badge variant="success">{s.score}%</Badge>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">{s.content}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Submitted {new Date(s.submitted_at).toLocaleString()}
+                    </p>
+                    {graded && (
+                      <div className="mt-2 rounded-md bg-muted/40 px-3 py-2 text-sm">
+                        <p className="font-medium text-foreground">Grade: {s.score}%</p>
+                        {s.feedback?.trim() && (
+                          <p className="mt-1 text-muted-foreground">Feedback: {s.feedback}</p>
+                        )}
+                        {s.graded_at && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Graded {new Date(s.graded_at).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={gradingId === s.id ? 'default' : 'outline'}
+                    onClick={() => setGradingId(gradingId === s.id ? null : s.id)}
+                  >
+                    {graded ? 'Regrade' : 'Grade'}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant={gradingId === s.id ? 'default' : 'outline'}
-                  onClick={() => setGradingId(gradingId === s.id ? null : s.id)}
-                >
-                  Grade
-                </Button>
+                {gradingId === s.id && (
+                  <GradeForm
+                    submission={s}
+                    onGraded={() => {
+                      setGradingId(null);
+                      loadSubmissions();
+                    }}
+                  />
+                )}
               </div>
-              {gradingId === s.id && (
-                <GradeForm
-                  submission={s}
-                  onGraded={() => {
-                    setGradingId(null);
-                    loadSubmissions();
-                  }}
-                />
-              )}
-            </div>
-          ))}
+            );
+          })}
           {submissions.length === 0 && !loading && assignmentId && (
             <p className="text-sm text-muted-foreground">No submissions yet for this assignment.</p>
-          )}
-          {!assignmentId && (
-            <p className="text-sm text-muted-foreground">
-              Select an assignment above to view and grade submissions.
-            </p>
           )}
         </div>
       </CardContent>

@@ -63,6 +63,7 @@ vi.mock('../services/assignment.service', () => ({
   deleteAssignment: vi.fn(),
   listStudentAssignments: vi.fn(),
   listTeacherAssignments: vi.fn(),
+  getTeacherAssignment: vi.fn(),
   listStudentAssignmentsForClass: vi.fn(),
   unpublishAssignment: vi.fn(),
 }));

@@ -35,9 +35,10 @@ export async function getSubmission(id: string) {
 }
 
 export async function listSubmissionsForAssignment(assignmentId: string) {
-  return getDb()
+  const rows = await getDb()
     .selectFrom('submissions')
     .innerJoin('users', 'users.id', 'submissions.student_id')
+    .leftJoin('grades', 'grades.submission_id', 'submissions.id')
     .select([
       'submissions.id',
       'submissions.assignment_id',
@@ -46,9 +47,17 @@ export async function listSubmissionsForAssignment(assignmentId: string) {
       'submissions.submitted_at',
       'users.name as student_name',
       'users.email as student_email',
+      'grades.score',
+      'grades.feedback',
+      'grades.graded_at',
     ])
     .where('submissions.assignment_id', '=', assignmentId)
     .execute();
+
+  return rows.map((row) => ({
+    ...row,
+    score: row.score != null ? Number(row.score) : null,
+  }));
 }
 
 export async function gradeSubmission(input: GradeSubmissionInput) {

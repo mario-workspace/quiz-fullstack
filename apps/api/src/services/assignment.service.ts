@@ -67,6 +67,25 @@ export async function deleteAssignment(id: string) {
   return Number(result.numDeletedRows) > 0;
 }
 
+export async function getTeacherAssignment(teacherId: string, assignmentId: string) {
+  return getDb()
+    .selectFrom('assignments')
+    .innerJoin('classes', 'classes.id', 'assignments.class_id')
+    .select([
+      'assignments.id',
+      'assignments.class_id',
+      'assignments.title',
+      'assignments.description',
+      'assignments.due_date',
+      'assignments.published',
+      'assignments.created_at',
+      'classes.name as class_name',
+    ])
+    .where('assignments.id', '=', assignmentId)
+    .where('classes.teacher_id', '=', teacherId)
+    .executeTakeFirst();
+}
+
 export async function listTeacherAssignments(teacherId: string, classId?: string) {
   let query = getDb()
     .selectFrom('assignments')

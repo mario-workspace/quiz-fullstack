@@ -36,6 +36,16 @@ export async function listTeachers() {
     .execute();
 }
 
+export async function listStudents() {
+  return getDb()
+    .selectFrom('users')
+    .select(['id', 'email', 'name', 'role', 'suspended', 'created_at'])
+    .where('role', '=', 'student')
+    .where('suspended', '=', false)
+    .orderBy('email', 'asc')
+    .execute();
+}
+
 export async function getAdminStats() {
   const rows = await getDb().selectFrom('users').select(['role', 'suspended']).execute();
 

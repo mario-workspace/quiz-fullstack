@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StudentMultiSelect } from '@/components/teacher/student-multi-select';
 import { api } from '@/lib/api';
-import type { ClassItem, ClassStudent } from '@/lib/types';
+import type { ClassItem, ClassStudent, User } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 
 interface ClassDetailDashboardProps {
@@ -16,7 +16,8 @@ interface ClassDetailDashboardProps {
 export function ClassDetailDashboard({ classId }: ClassDetailDashboardProps) {
   const [classInfo, setClassInfo] = useState<ClassItem | null>(null);
   const [students, setStudents] = useState<ClassStudent[]>([]);
-  const [studentEmail, setStudentEmail] = useState('');
+  const [allStudents, setAllStudents] = useState<User[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -43,20 +44,51 @@ export function ClassDetailDashboard({ classId }: ClassDetailDashboardProps) {
     }
   }, [classId]);
 
+  const loadAllStudents = useCallback(async () => {
+    try {
+      setAllStudents(await api<User[]>('/teacher/students'));
+    } catch (err) {
+      setAllStudents([]);
+      toast({
+        title: 'Failed to load students',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  }, []);
+
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    loadAllStudents();
+  }, [loadData, loadAllStudents]);
 
-  async function addStudent() {
-    if (!studentEmail.trim()) return;
+  async function addStudents() {
+    if (selectedIds.length === 0) return;
+
+    const emails = allStudents
+      .filter((s) => selectedIds.includes(s.id))
+      .map((s) => s.email);
+
     setAdding(true);
     try {
-      await api(`/teacher/classes/${classId}/students`, {
-        method: 'POST',
-        body: JSON.stringify({ email: studentEmail.trim() }),
+      const result = await api<{ success: boolean; added: string[]; notFound: string[] }>(
+        `/teacher/classes/${classId}/students`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ emails }),
+        },
+      );
+
+      const count = result.added.length;
+      toast({
+        title: count === 1 ? 'Student enrolled' : `${count} students enrolled`,
+        description:
+          result.notFound.length > 0
+            ? `Could not enroll: ${result.notFound.join(', ')}`
+            : undefined,
+        variant: 'success',
       });
-      setStudentEmail('');
-      toast({ title: 'Student enrolled', variant: 'success' });
+      setSelectedIds([]);
       await loadData();
     } catch (err) {
       toast({
@@ -113,17 +145,16 @@ export function ClassDetailDashboard({ classId }: ClassDetailDashboardProps) {
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1 space-y-2">
-              <Label htmlFor="student-email">Add Student by Email</Label>
-              <Input
-                id="student-email"
-                type="email"
-                value={studentEmail}
-                onChange={(e) => setStudentEmail(e.target.value)}
-                placeholder="student@school.edu"
+              <Label>Add Students by Email</Label>
+              <StudentMultiSelect
+                students={allStudents}
+                excludeIds={students.map((s) => s.id)}
+                selectedIds={selectedIds}
+                onSelectionChange={setSelectedIds}
               />
             </div>
-            <Button onClick={addStudent} disabled={adding || !studentEmail.trim()}>
-              {adding ? 'Adding...' : 'Add Student'}
+            <Button onClick={addStudents} disabled={adding || selectedIds.length === 0}>
+              {adding ? 'Adding...' : 'Add Students'}
             </Button>
           </div>
 

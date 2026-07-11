@@ -13,6 +13,10 @@ export async function teacherRoutes(app: FastifyInstance) {
     return classService.getTeacherStats(request.user!.sub);
   });
 
+  app.get('/teacher/students', async () => {
+    return userService.listStudents();
+  });
+
   app.get('/teacher/classes', async (request) => {
     return classService.listTeacherClasses(request.user!.sub);
   });
@@ -61,20 +65,40 @@ export async function teacherRoutes(app: FastifyInstance) {
 
   app.post('/teacher/classes/:id/students', async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
-    const body = z.object({ email: z.string().email() }).parse(request.body);
+    const body = z
+      .object({
+        email: z.string().email().optional(),
+        emails: z.array(z.string().email()).min(1).optional(),
+      })
+      .refine((data) => data.email || (data.emails && data.emails.length > 0), {
+        message: 'Provide email or emails',
+      })
+      .parse(request.body);
+
     const cls = await classService.getClass(id);
     if (!cls || cls.teacher_id !== request.user!.sub) {
       return reply.status(403).send({ error: 'Not your class' });
     }
-    const student = await userService.getUserByEmail(body.email);
-    if (!student || student.role !== 'student') {
-      return reply.status(404).send({ error: 'Student not found' });
+
+    const emails = body.emails ?? (body.email ? [body.email] : []);
+    const added: string[] = [];
+    const notFound: string[] = [];
+
+    for (const email of emails) {
+      const student = await userService.getUserByEmail(email);
+      if (!student || student.role !== 'student' || student.suspended) {
+        notFound.push(email);
+        continue;
+      }
+      await classService.addStudentToClass(id, student.id);
+      added.push(email);
     }
-    if (student.suspended) {
-      return reply.status(400).send({ error: 'Cannot enroll suspended student' });
+
+    if (added.length === 0) {
+      return reply.status(404).send({ error: 'No students found for the provided emails' });
     }
-    await classService.addStudentToClass(id, student.id);
-    return { success: true };
+
+    return { success: true, added, notFound };
   });
 
   app.delete('/teacher/classes/:classId/students/:studentId', async (request, reply) => {
@@ -102,6 +126,13 @@ export async function teacherRoutes(app: FastifyInstance) {
   app.get('/teacher/assignments', async (request) => {
     const query = z.object({ classId: z.string().uuid().optional() }).parse(request.query);
     return assignmentService.listTeacherAssignments(request.user!.sub, query.classId);
+  });
+
+  app.get('/teacher/assignments/:id', async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const assignment = await assignmentService.getTeacherAssignment(request.user!.sub, id);
+    if (!assignment) return reply.status(404).send({ error: 'Assignment not found' });
+    return assignment;
   });
 
   app.post('/teacher/assignments', async (request, reply) => {
