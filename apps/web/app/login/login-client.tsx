@@ -14,8 +14,8 @@ import { getOAuthUrl } from '@/lib/api';
 export default function LoginPageClient() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get('error');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@school.edu');
+  const [password, setPassword] = useState('admin123');
   const [error, setError] = useState(errorParam === 'suspended' ? 'Your account has been suspended.' : '');
   const [loading, setLoading] = useState(false);
 
@@ -34,14 +34,14 @@ export default function LoginPageClient() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-background to-indigo-50 p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <GraduationCap className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
+            <GraduationCap className="h-7 w-7 text-blue-600" />
           </div>
-          <CardTitle>School Portal Login</CardTitle>
-          <CardDescription>Sign in to access your dashboard</CardDescription>
+          <CardTitle>School Portal</CardTitle>
+          <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -67,26 +67,32 @@ export default function LoginPageClient() {
               />
             </div>
             {error && (
-              <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+              <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
+
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
+              <span className="w-full border-t border-slate-200" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+            <div className="relative flex justify-center text-xs uppercase tracking-wide text-slate-400">
+              <span className="bg-white px-2">or</span>
             </div>
           </div>
-          <Link href={getOAuthUrl()}>
+
+          <Link href={getOAuthUrl()} className="block">
             <Button variant="outline" className="w-full">
-              <Github className="mr-2 h-4 w-4" />
+              <Github className="h-4 w-4" />
               Continue with GitHub
             </Button>
           </Link>
+
+          <p className="mt-4 text-center text-xs text-slate-500">
+            Demo: admin@school.edu / admin123
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -23,4 +23,4 @@ function run(name, command, args, cwd) {
 
 console.log('Starting API and Web servers...');
 run('api', 'npx', ['vite-node', 'scripts/start-api.mjs']);
-run('web', 'npx', ['next', 'dev', 'apps/web', '-p', '3000']);
+run('web', 'npx', ['next', 'dev', '-p', '3000'], path.join(root, 'apps', 'web'));

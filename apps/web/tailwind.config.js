@@ -1,8 +1,12 @@
-import type { Config } from 'tailwindcss';
+const path = require('path');
 
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   darkMode: ['class'],
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  content: [
+    path.join(__dirname, 'app/**/*.{js,ts,jsx,tsx,mdx}'),
+    path.join(__dirname, 'components/**/*.{js,ts,jsx,tsx,mdx}'),
+  ],
   theme: {
     extend: {
       colors: {
@@ -31,5 +35,3 @@ const config: Config = {
   },
   plugins: [require('tailwindcss-animate')],
 };
-
-export default config;

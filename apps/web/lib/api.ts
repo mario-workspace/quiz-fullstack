@@ -1,8 +1,7 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 function getBaseUrl(): string {
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || '/api';
-  }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  return API_BASE_URL;
 }
 
 export function getApiUrl(): string {
