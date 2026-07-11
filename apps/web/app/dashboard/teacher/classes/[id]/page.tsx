@@ -1,25 +1,30 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser } from '@/lib/auth';
-import { TeacherAssignmentsDashboard } from '@/components/teacher/teacher-assignments-dashboard';
+import { ClassDetailDashboard } from '@/components/teacher/class-detail-dashboard';
 
-export default async function TeacherAssignmentsPage() {
+export default async function TeacherClassDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
   if (user.role !== 'teacher') redirect('/dashboard');
 
+  const { id } = await params;
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Assignments & Grading</h1>
+        <h1 className="text-2xl font-bold">Class Details</h1>
         <p className="text-muted-foreground">
-          Create assignments, publish them, and grade submissions.{' '}
           <Link href="/dashboard/teacher" className="text-primary hover:underline">
-            Back to classes →
+            ← Back to classes
           </Link>
         </p>
       </div>
-      <TeacherAssignmentsDashboard />
+      <ClassDetailDashboard classId={id} />
     </div>
   );
 }

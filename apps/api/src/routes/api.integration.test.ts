@@ -42,6 +42,8 @@ vi.mock('../services/teacher-group.service', () => ({
 
 vi.mock('../services/class.service', () => ({
   listClasses: vi.fn(),
+  listTeacherClasses: vi.fn(),
+  getTeacherStats: vi.fn(),
   getClass: vi.fn(),
   createClass: vi.fn(),
   updateClass: vi.fn(),
@@ -62,6 +64,7 @@ vi.mock('../services/assignment.service', () => ({
   listStudentAssignments: vi.fn(),
   listTeacherAssignments: vi.fn(),
   listStudentAssignmentsForClass: vi.fn(),
+  unpublishAssignment: vi.fn(),
 }));
 
 vi.mock('../services/submission.service', () => ({
@@ -234,8 +237,15 @@ describe('API integration', () => {
 
   describe('teacher routes', () => {
     it('GET /teacher/classes returns teacher classes', async () => {
-      vi.mocked(classService.listClasses).mockResolvedValue([
-        { id: TEST_IDS.class, name: 'Algebra', description: null, teacher_id: TEST_IDS.teacher, created_at: new Date() },
+      vi.mocked(classService.listTeacherClasses).mockResolvedValue([
+        {
+          id: TEST_IDS.class,
+          name: 'Algebra',
+          description: null,
+          teacher_id: TEST_IDS.teacher,
+          created_at: new Date(),
+          student_count: 3,
+        },
       ]);
       const app = await createTestApp();
       const { agent } = await loginAs(app, 'teacher');

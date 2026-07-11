@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AuthUser } from '@/lib/auth';
+import { useDashboardNavigation } from '@/components/dashboard-navigation';
 
 const navItems: Record<
   AuthUser['role'],
@@ -36,6 +37,7 @@ const navItems: Record<
 
 export function Sidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
+  const { startNavigation } = useDashboardNavigation();
   const items = navItems[user.role];
 
   return (
@@ -48,6 +50,9 @@ export function Sidebar({ user }: { user: AuthUser }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                if (item.href !== pathname) startNavigation();
+              }}
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
                 active && 'bg-primary/10 text-primary',

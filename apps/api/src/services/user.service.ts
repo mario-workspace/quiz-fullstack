@@ -31,8 +31,30 @@ export async function listTeachers() {
     .selectFrom('users')
     .select(['id', 'email', 'name', 'role', 'suspended', 'created_at'])
     .where('role', '=', 'teacher')
+    .where('suspended', '=', false)
     .orderBy('email', 'asc')
     .execute();
+}
+
+export async function getAdminStats() {
+  const rows = await getDb().selectFrom('users').select(['role', 'suspended']).execute();
+
+  const teachers = rows.filter((r) => r.role === 'teacher');
+  const students = rows.filter((r) => r.role === 'student');
+
+  return {
+    totalUsers: rows.filter((r) => r.role !== 'admin').length,
+    teachers: {
+      total: teachers.length,
+      active: teachers.filter((t) => !t.suspended).length,
+      suspended: teachers.filter((t) => t.suspended).length,
+    },
+    students: {
+      total: students.length,
+      active: students.filter((s) => !s.suspended).length,
+      suspended: students.filter((s) => s.suspended).length,
+    },
+  };
 }
 
 export async function getUserById(id: string) {

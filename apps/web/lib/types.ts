@@ -27,6 +27,7 @@ export interface ClassItem {
   description: string | null;
   teacher_id?: string;
   created_at?: string;
+  student_count?: number;
 }
 
 export interface ClassStudent {

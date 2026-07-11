@@ -58,6 +58,10 @@ export async function publishAssignment(id: string) {
   return updateAssignment(id, { published: true });
 }
 
+export async function unpublishAssignment(id: string) {
+  return updateAssignment(id, { published: false });
+}
+
 export async function deleteAssignment(id: string) {
   const result = await getDb().deleteFrom('assignments').where('id', '=', id).executeTakeFirst();
   return Number(result.numDeletedRows) > 0;

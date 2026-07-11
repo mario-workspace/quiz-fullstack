@@ -9,8 +9,22 @@ import * as userService from '../services/user.service';
 export async function teacherRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireRole('teacher'));
 
+  app.get('/teacher/stats', async (request) => {
+    return classService.getTeacherStats(request.user!.sub);
+  });
+
   app.get('/teacher/classes', async (request) => {
-    return classService.listClasses(request.user!.sub);
+    return classService.listTeacherClasses(request.user!.sub);
+  });
+
+  app.get('/teacher/classes/:id', async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const cls = await classService.getClass(id);
+    if (!cls || cls.teacher_id !== request.user!.sub) {
+      return reply.status(403).send({ error: 'Not your class' });
+    }
+    const students = await classService.listClassStudents(id);
+    return { ...cls, student_count: students.length };
   });
 
   app.post('/teacher/classes', async (request) => {
@@ -115,6 +129,50 @@ export async function teacherRoutes(app: FastifyInstance) {
       return reply.status(403).send({ error: 'Not your assignment' });
     }
     return assignmentService.publishAssignment(id);
+  });
+
+  app.post('/teacher/assignments/:id/unpublish', async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const assignment = await assignmentService.getAssignment(id);
+    if (!assignment) return reply.status(404).send({ error: 'Assignment not found' });
+    const cls = await classService.getClass(assignment.class_id);
+    if (!cls || cls.teacher_id !== request.user!.sub) {
+      return reply.status(403).send({ error: 'Not your assignment' });
+    }
+    return assignmentService.unpublishAssignment(id);
+  });
+
+  app.put('/teacher/assignments/:id', async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const body = z
+      .object({
+        title: z.string().min(1).optional(),
+        description: z.string().optional(),
+        dueDate: z.string().nullable().optional(),
+      })
+      .parse(request.body);
+    const assignment = await assignmentService.getAssignment(id);
+    if (!assignment) return reply.status(404).send({ error: 'Assignment not found' });
+    const cls = await classService.getClass(assignment.class_id);
+    if (!cls || cls.teacher_id !== request.user!.sub) {
+      return reply.status(403).send({ error: 'Not your assignment' });
+    }
+    const updated = await assignmentService.updateAssignment(id, body);
+    if (!updated) return reply.status(404).send({ error: 'Assignment not found' });
+    return updated;
+  });
+
+  app.delete('/teacher/assignments/:id', async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const assignment = await assignmentService.getAssignment(id);
+    if (!assignment) return reply.status(404).send({ error: 'Assignment not found' });
+    const cls = await classService.getClass(assignment.class_id);
+    if (!cls || cls.teacher_id !== request.user!.sub) {
+      return reply.status(403).send({ error: 'Not your assignment' });
+    }
+    const deleted = await assignmentService.deleteAssignment(id);
+    if (!deleted) return reply.status(404).send({ error: 'Assignment not found' });
+    return { success: true };
   });
 
   app.get('/teacher/assignments/:id/submissions', async (request, reply) => {

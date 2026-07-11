@@ -23,6 +23,7 @@ export async function listTeacherGroups() {
         .innerJoin('users', 'users.id', 'teacher_group_members.teacher_id')
         .select((eb2) => eb2.fn.countAll().as('teacher_count'))
         .whereRef('teacher_group_members.teacher_group_id', '=', 'teacher_groups.id')
+        .where('users.suspended', '=', false)
         .as('teacher_count'),
     ])
     .orderBy('teacher_groups.created_at', 'desc')
@@ -93,5 +94,6 @@ export async function listGroupTeachers(groupId: string) {
     .innerJoin('users', 'users.id', 'teacher_group_members.teacher_id')
     .select(['users.id', 'users.email', 'users.name', 'users.role', 'users.suspended'])
     .where('teacher_group_members.teacher_group_id', '=', groupId)
+    .where('users.suspended', '=', false)
     .execute();
 }

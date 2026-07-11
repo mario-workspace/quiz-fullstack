@@ -10,6 +10,8 @@ export async function adminRoutes(app: FastifyInstance) {
   // Users CRUD
   app.get('/admin/users', async () => userService.listUsers());
 
+  app.get('/admin/stats', async () => userService.getAdminStats());
+
   app.get('/admin/teachers', async () => userService.listTeachers());
 
   app.post('/admin/users', async (request) => {
@@ -105,7 +107,7 @@ export async function adminRoutes(app: FastifyInstance) {
 
     for (const email of emails) {
       const teacher = await userService.getUserByEmail(email);
-      if (!teacher || teacher.role !== 'teacher') {
+      if (!teacher || teacher.role !== 'teacher' || teacher.suspended) {
         notFound.push(email);
         continue;
       }

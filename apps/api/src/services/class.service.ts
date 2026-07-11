@@ -19,6 +19,57 @@ export async function listClasses(teacherId?: string) {
   return query.execute();
 }
 
+export async function listTeacherClasses(teacherId: string) {
+  const rows = await getDb()
+    .selectFrom('classes')
+    .select((eb) => [
+      'classes.id',
+      'classes.name',
+      'classes.description',
+      'classes.teacher_id',
+      'classes.created_at',
+      eb
+        .selectFrom('class_enrollments')
+        .innerJoin('users', 'users.id', 'class_enrollments.student_id')
+        .select((eb2) => eb2.fn.countAll().as('student_count'))
+        .whereRef('class_enrollments.class_id', '=', 'classes.id')
+        .where('users.suspended', '=', false)
+        .as('student_count'),
+    ])
+    .where('classes.teacher_id', '=', teacherId)
+    .orderBy('classes.created_at', 'desc')
+    .execute();
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    teacher_id: row.teacher_id,
+    created_at: row.created_at,
+    student_count: Number(row.student_count ?? 0),
+  }));
+}
+
+export async function getTeacherStats(teacherId: string) {
+  const classCount = await getDb()
+    .selectFrom('classes')
+    .select((eb) => eb.fn.countAll().as('count'))
+    .where('teacher_id', '=', teacherId)
+    .executeTakeFirst();
+
+  const assignmentCount = await getDb()
+    .selectFrom('assignments')
+    .innerJoin('classes', 'classes.id', 'assignments.class_id')
+    .select((eb) => eb.fn.countAll().as('count'))
+    .where('classes.teacher_id', '=', teacherId)
+    .executeTakeFirst();
+
+  return {
+    totalClasses: Number(classCount?.count ?? 0),
+    totalAssignments: Number(assignmentCount?.count ?? 0),
+  };
+}
+
 export async function getClass(id: string) {
   return getDb().selectFrom('classes').selectAll().where('id', '=', id).executeTakeFirst();
 }
@@ -76,6 +127,7 @@ export async function listClassStudents(classId: string) {
     .innerJoin('users', 'users.id', 'class_enrollments.student_id')
     .select(['users.id', 'users.email', 'users.name', 'users.suspended', 'class_enrollments.enrolled_at'])
     .where('class_enrollments.class_id', '=', classId)
+    .where('users.suspended', '=', false)
     .execute();
 }
 

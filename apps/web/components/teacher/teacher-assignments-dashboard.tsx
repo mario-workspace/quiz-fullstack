@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { AssignmentForm } from '@/components/teacher/assignment-form';
-import { TeacherAssignmentList } from '@/components/teacher/teacher-assignment-list';
+import { AssignmentTable } from '@/components/teacher/assignment-table';
 import { SubmissionsPanel } from '@/components/teacher/grade-form';
 import { api } from '@/lib/api';
 import type { ClassItem } from '@/lib/types';
@@ -39,9 +39,9 @@ export function TeacherAssignmentsDashboard() {
           setRefreshKey((k) => k + 1);
         }}
       />
-      <TeacherAssignmentList
-        selectedId={assignmentId}
-        onSelect={setAssignmentId}
+      <AssignmentTable
+        gradingId={assignmentId}
+        onGrade={setAssignmentId}
         refreshKey={refreshKey}
       />
       <SubmissionsPanel

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-provider';
 import { logout, type AuthUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
+import { useDashboardNavigation } from '@/components/dashboard-navigation';
 
 const links: Record<AuthUser['role'], { href: string; label: string }[]> = {
   admin: [
@@ -25,11 +26,18 @@ const links: Record<AuthUser['role'], { href: string; label: string }[]> = {
 
 export function Navbar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
+  const { startNavigation } = useDashboardNavigation();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
       <div className="flex h-14 items-center justify-between px-4 lg:px-6">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+        <Link
+          href="/dashboard"
+          onClick={() => {
+            if (pathname !== '/dashboard') startNavigation();
+          }}
+          className="flex items-center gap-2 font-semibold"
+        >
           <GraduationCap className="h-6 w-6 text-primary" />
           <span className="hidden sm:inline">School Portal</span>
         </Link>
@@ -38,6 +46,9 @@ export function Navbar({ user }: { user: AuthUser }) {
             <Link
               key={link.href}
               href={link.href}
+              onClick={() => {
+                if (link.href !== pathname) startNavigation();
+              }}
               className={cn(
                 'rounded-md px-2 py-1 text-xs hover:text-primary',
                 pathname === link.href && 'font-semibold text-primary',

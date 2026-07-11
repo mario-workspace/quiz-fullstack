@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ManageTeachersDialog } from '@/components/admin/manage-teachers-dialog';
+import { EditTeacherGroupDialog } from '@/components/admin/edit-teacher-group-dialog';
 import { api } from '@/lib/api';
 import type { TeacherGroup } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
-import { Users } from 'lucide-react';
+import { Pencil, Users } from 'lucide-react';
 
 interface TeacherGroupListProps {
   groups: TeacherGroup[];
@@ -17,6 +18,7 @@ interface TeacherGroupListProps {
 
 export function TeacherGroupList({ groups, onUpdate }: TeacherGroupListProps) {
   const [manageGroup, setManageGroup] = useState<TeacherGroup | null>(null);
+  const [editGroup, setEditGroup] = useState<TeacherGroup | null>(null);
 
   async function deleteGroup(id: string) {
     if (!confirm('Delete this teacher group?')) return;
@@ -54,7 +56,11 @@ export function TeacherGroupList({ groups, onUpdate }: TeacherGroupListProps) {
                   {g.teacher_count ?? 0} teacher{(g.teacher_count ?? 0) === 1 ? '' : 's'}
                 </Badge>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => setEditGroup(g)}>
+                  <Pencil className="mr-1 h-4 w-4" />
+                  Edit
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => setManageGroup(g)}>
                   <Users className="mr-1 h-4 w-4" />
                   Manage Teachers
@@ -70,6 +76,15 @@ export function TeacherGroupList({ groups, onUpdate }: TeacherGroupListProps) {
           )}
         </CardContent>
       </Card>
+
+      <EditTeacherGroupDialog
+        group={editGroup}
+        open={editGroup !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditGroup(null);
+        }}
+        onUpdated={onUpdate}
+      />
 
       <ManageTeachersDialog
         group={manageGroup}
