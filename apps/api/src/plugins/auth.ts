@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { verifyToken, type JwtPayload } from '../services/auth.service';
+import { getUserById } from '../services/user.service';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -29,6 +30,16 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
   const payload = verifyToken(token);
   if (!payload) {
     return reply.status(401).send({ error: 'Invalid token' });
+  }
+
+  const user = await getUserById(payload.sub);
+  if (!user) {
+    reply.clearCookie('token', { path: '/' });
+    return reply.status(401).send({ error: 'User not found' });
+  }
+  if (user.suspended) {
+    reply.clearCookie('token', { path: '/' });
+    return reply.status(403).send({ error: 'Account suspended' });
   }
 
   request.user = payload;

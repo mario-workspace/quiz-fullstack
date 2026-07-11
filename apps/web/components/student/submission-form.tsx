@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,12 @@ export function SubmissionForm({ assignments, selectedAssignmentId }: Submission
   const [assignmentId, setAssignmentId] = useState(selectedAssignmentId ?? '');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedAssignmentId) {
+      setAssignmentId(selectedAssignmentId);
+    }
+  }, [selectedAssignmentId]);
 
   const published = assignments.filter((a) => a.published);
 

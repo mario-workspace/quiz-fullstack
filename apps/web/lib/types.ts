@@ -12,6 +12,7 @@ export interface TeacherGroup {
   name: string;
   description: string | null;
   created_at?: string;
+  teacher_count?: number;
 }
 
 export interface GroupTeacher {

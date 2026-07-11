@@ -5,12 +5,22 @@ import { TeacherGroupForm } from '@/components/admin/teacher-group-form';
 import { TeacherGroupList } from '@/components/admin/teacher-group-list';
 import { api } from '@/lib/api';
 import type { TeacherGroup } from '@/lib/types';
+import { toast } from '@/components/ui/use-toast';
 
 export function AdminGroupsDashboard() {
   const [groups, setGroups] = useState<TeacherGroup[]>([]);
 
   const loadGroups = useCallback(() => {
-    api<TeacherGroup[]>('/admin/teacher-groups').then(setGroups).catch(() => setGroups([]));
+    api<TeacherGroup[]>('/admin/teacher-groups')
+      .then(setGroups)
+      .catch((err) => {
+        setGroups([]);
+        toast({
+          title: 'Failed to load groups',
+          description: err instanceof Error ? err.message : 'Unknown error',
+          variant: 'destructive',
+        });
+      });
   }, []);
 
   useEffect(() => {

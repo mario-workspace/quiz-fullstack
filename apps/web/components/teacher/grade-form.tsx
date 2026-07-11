@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -79,12 +79,16 @@ export function SubmissionsPanel({ assignmentId, onPublish }: SubmissionsPanelPr
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function loadSubmissions() {
-    if (!assignmentId) return;
+  const loadSubmissions = useCallback(async () => {
+    if (!assignmentId) {
+      setSubmissions([]);
+      return;
+    }
     setLoading(true);
     try {
       setSubmissions(await api<Submission[]>(`/teacher/assignments/${assignmentId}/submissions`));
     } catch (err) {
+      setSubmissions([]);
       toast({
         title: 'Failed to load submissions',
         description: err instanceof Error ? err.message : 'Unknown error',
@@ -93,7 +97,11 @@ export function SubmissionsPanel({ assignmentId, onPublish }: SubmissionsPanelPr
     } finally {
       setLoading(false);
     }
-  }
+  }, [assignmentId]);
+
+  useEffect(() => {
+    loadSubmissions();
+  }, [loadSubmissions]);
 
   async function publish() {
     if (!assignmentId) return;
@@ -154,9 +162,12 @@ export function SubmissionsPanel({ assignmentId, onPublish }: SubmissionsPanelPr
               )}
             </div>
           ))}
-          {submissions.length === 0 && !loading && (
+          {submissions.length === 0 && !loading && assignmentId && (
+            <p className="text-sm text-muted-foreground">No submissions yet for this assignment.</p>
+          )}
+          {!assignmentId && (
             <p className="text-sm text-muted-foreground">
-              Enter an assignment ID above, then load submissions.
+              Select an assignment above to view and grade submissions.
             </p>
           )}
         </div>

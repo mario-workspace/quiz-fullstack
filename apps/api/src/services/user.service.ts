@@ -26,6 +26,15 @@ export async function listUsers() {
     .execute();
 }
 
+export async function listTeachers() {
+  return getDb()
+    .selectFrom('users')
+    .select(['id', 'email', 'name', 'role', 'suspended', 'created_at'])
+    .where('role', '=', 'teacher')
+    .orderBy('email', 'asc')
+    .execute();
+}
+
 export async function getUserById(id: string) {
   return getDb()
     .selectFrom('users')

@@ -63,6 +63,52 @@ export async function deleteAssignment(id: string) {
   return Number(result.numDeletedRows) > 0;
 }
 
+export async function listTeacherAssignments(teacherId: string, classId?: string) {
+  let query = getDb()
+    .selectFrom('assignments')
+    .innerJoin('classes', 'classes.id', 'assignments.class_id')
+    .select([
+      'assignments.id',
+      'assignments.class_id',
+      'assignments.title',
+      'assignments.description',
+      'assignments.due_date',
+      'assignments.published',
+      'assignments.created_at',
+      'classes.name as class_name',
+    ])
+    .where('classes.teacher_id', '=', teacherId)
+    .orderBy('assignments.created_at', 'desc');
+  if (classId) query = query.where('assignments.class_id', '=', classId);
+  return query.execute();
+}
+
+export async function listStudentAssignmentsForClass(studentId: string, classId: string) {
+  const enrollment = await getDb()
+    .selectFrom('class_enrollments')
+    .select('class_id')
+    .where('class_id', '=', classId)
+    .where('student_id', '=', studentId)
+    .executeTakeFirst();
+  if (!enrollment) return null;
+
+  return getDb()
+    .selectFrom('assignments')
+    .select([
+      'assignments.id',
+      'assignments.class_id',
+      'assignments.title',
+      'assignments.description',
+      'assignments.due_date',
+      'assignments.published',
+      'assignments.created_at',
+    ])
+    .where('class_id', '=', classId)
+    .where('published', '=', true)
+    .orderBy('assignments.due_date', 'asc')
+    .execute();
+}
+
 export async function listStudentAssignments(studentId: string) {
   return getDb()
     .selectFrom('assignments')

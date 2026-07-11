@@ -4,6 +4,7 @@ import { requireRole } from '../plugins/auth';
 import * as classService from '../services/class.service';
 import * as assignmentService from '../services/assignment.service';
 import * as submissionService from '../services/submission.service';
+import * as userService from '../services/user.service';
 
 export async function teacherRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireRole('teacher'));
@@ -46,12 +47,19 @@ export async function teacherRoutes(app: FastifyInstance) {
 
   app.post('/teacher/classes/:id/students', async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
-    const body = z.object({ studentId: z.string().uuid() }).parse(request.body);
+    const body = z.object({ email: z.string().email() }).parse(request.body);
     const cls = await classService.getClass(id);
     if (!cls || cls.teacher_id !== request.user!.sub) {
       return reply.status(403).send({ error: 'Not your class' });
     }
-    await classService.addStudentToClass(id, body.studentId);
+    const student = await userService.getUserByEmail(body.email);
+    if (!student || student.role !== 'student') {
+      return reply.status(404).send({ error: 'Student not found' });
+    }
+    if (student.suspended) {
+      return reply.status(400).send({ error: 'Cannot enroll suspended student' });
+    }
+    await classService.addStudentToClass(id, student.id);
     return { success: true };
   });
 
@@ -75,6 +83,11 @@ export async function teacherRoutes(app: FastifyInstance) {
       return reply.status(403).send({ error: 'Not your class' });
     }
     return classService.listClassStudents(id);
+  });
+
+  app.get('/teacher/assignments', async (request) => {
+    const query = z.object({ classId: z.string().uuid().optional() }).parse(request.query);
+    return assignmentService.listTeacherAssignments(request.user!.sub, query.classId);
   });
 
   app.post('/teacher/assignments', async (request, reply) => {

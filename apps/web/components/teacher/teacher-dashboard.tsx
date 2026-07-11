@@ -6,13 +6,23 @@ import { ClassList } from '@/components/teacher/class-list';
 import { StudentEnrollForm } from '@/components/teacher/student-enroll-form';
 import { api } from '@/lib/api';
 import type { ClassItem } from '@/lib/types';
+import { toast } from '@/components/ui/use-toast';
 
 export function TeacherDashboard() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
 
   const loadClasses = useCallback(() => {
-    api<ClassItem[]>('/teacher/classes').then(setClasses).catch(() => setClasses([]));
+    api<ClassItem[]>('/teacher/classes')
+      .then(setClasses)
+      .catch((err) => {
+        setClasses([]);
+        toast({
+          title: 'Failed to load classes',
+          description: err instanceof Error ? err.message : 'Unknown error',
+          variant: 'destructive',
+        });
+      });
   }, []);
 
   useEffect(() => {

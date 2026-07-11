@@ -39,7 +39,21 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || 'Request failed');
+    const message =
+      (typeof err.error === 'string' && err.error) ||
+      (typeof err.message === 'string' && err.message) ||
+      res.statusText ||
+      'Request failed';
+
+    if (
+      typeof window !== 'undefined' &&
+      res.status === 403 &&
+      (message === 'Account suspended' || message === 'User not found')
+    ) {
+      window.location.href = '/login?error=suspended';
+    }
+
+    throw new Error(message);
   }
 
   return res.json() as Promise<T>;

@@ -2,15 +2,31 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate, requireRole } from './auth';
 import * as authService from '../services/auth.service';
+import * as userService from '../services/user.service';
+
+vi.mock('../services/user.service', () => ({
+  getUserById: vi.fn(),
+}));
+
+const TEST_USER_ID = '11111111-1111-1111-1111-111111111111';
 
 describe('auth plugin', () => {
   let reply: FastifyReply;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(userService.getUserById).mockResolvedValue({
+      id: TEST_USER_ID,
+      email: 'a@b.com',
+      name: 'Admin',
+      role: 'admin',
+      suspended: false,
+      created_at: new Date(),
+    });
     reply = {
       status: vi.fn().mockReturnThis(),
       send: vi.fn(),
+      clearCookie: vi.fn(),
     } as unknown as FastifyReply;
   });
 
@@ -48,7 +64,7 @@ describe('auth plugin', () => {
 
   it('attaches user for valid token', async () => {
     const token = authService.signToken({
-      sub: '1',
+      sub: TEST_USER_ID,
       email: 'a@b.com',
       role: 'admin',
       name: 'Admin',
@@ -57,6 +73,28 @@ describe('auth plugin', () => {
     await authenticate(request, reply);
     expect(request.user?.role).toBe('admin');
     expect(reply.status).not.toHaveBeenCalled();
+  });
+
+  it('rejects suspended users and clears cookie', async () => {
+    vi.mocked(userService.getUserById).mockResolvedValue({
+      id: TEST_USER_ID,
+      email: 'a@b.com',
+      name: 'Admin',
+      role: 'admin',
+      suspended: true,
+      created_at: new Date(),
+    });
+    const token = authService.signToken({
+      sub: TEST_USER_ID,
+      email: 'a@b.com',
+      role: 'admin',
+      name: 'Admin',
+    });
+    const request = { url: '/admin/users', cookies: { token } } as FastifyRequest;
+    await authenticate(request, reply);
+    expect(reply.clearCookie).toHaveBeenCalledWith('token', { path: '/' });
+    expect(reply.status).toHaveBeenCalledWith(403);
+    expect(reply.send).toHaveBeenCalledWith({ error: 'Account suspended' });
   });
 
   it('requireRole blocks wrong role', async () => {

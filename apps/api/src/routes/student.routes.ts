@@ -12,6 +12,18 @@ export async function studentRoutes(app: FastifyInstance) {
     return classService.listStudentClasses(request.user!.sub);
   });
 
+  app.get('/student/classes/:classId/assignments', async (request, reply) => {
+    const { classId } = z.object({ classId: z.string().uuid() }).parse(request.params);
+    const assignments = await assignmentService.listStudentAssignmentsForClass(
+      request.user!.sub,
+      classId,
+    );
+    if (assignments === null) {
+      return reply.status(403).send({ error: 'Not enrolled in this class' });
+    }
+    return assignments;
+  });
+
   app.get('/student/assignments', async (request) => {
     return assignmentService.listStudentAssignments(request.user!.sub);
   });

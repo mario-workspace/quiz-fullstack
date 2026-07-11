@@ -11,11 +11,30 @@ export interface UpdateTeacherGroupInput {
 }
 
 export async function listTeacherGroups() {
-  return getDb()
+  const rows = await getDb()
     .selectFrom('teacher_groups')
-    .selectAll()
-    .orderBy('created_at', 'desc')
+    .select((eb) => [
+      'teacher_groups.id',
+      'teacher_groups.name',
+      'teacher_groups.description',
+      'teacher_groups.created_at',
+      eb
+        .selectFrom('teacher_group_members')
+        .innerJoin('users', 'users.id', 'teacher_group_members.teacher_id')
+        .select((eb2) => eb2.fn.countAll().as('teacher_count'))
+        .whereRef('teacher_group_members.teacher_group_id', '=', 'teacher_groups.id')
+        .as('teacher_count'),
+    ])
+    .orderBy('teacher_groups.created_at', 'desc')
     .execute();
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    created_at: row.created_at,
+    teacher_count: Number(row.teacher_count ?? 0),
+  }));
 }
 
 export async function getTeacherGroup(id: string) {

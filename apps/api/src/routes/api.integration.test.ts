@@ -58,7 +58,10 @@ vi.mock('../services/assignment.service', () => ({
   createAssignment: vi.fn(),
   updateAssignment: vi.fn(),
   publishAssignment: vi.fn(),
+  deleteAssignment: vi.fn(),
   listStudentAssignments: vi.fn(),
+  listTeacherAssignments: vi.fn(),
+  listStudentAssignmentsForClass: vi.fn(),
 }));
 
 vi.mock('../services/submission.service', () => ({
@@ -93,6 +96,12 @@ describe('API integration', () => {
       if (email === 'admin@school.edu') return mockUser('admin');
       if (email === 'teacher@school.edu') return mockUser('teacher');
       if (email === 'student@school.edu') return mockUser('student');
+      return undefined;
+    });
+    vi.mocked(userService.getUserById).mockImplementation(async (id: string) => {
+      if (id === TEST_IDS.admin) return mockUser('admin');
+      if (id === TEST_IDS.teacher) return mockUser('teacher');
+      if (id === TEST_IDS.student) return mockUser('student');
       return undefined;
     });
   });
@@ -206,7 +215,13 @@ describe('API integration', () => {
 
     it('GET /admin/teacher-groups lists groups', async () => {
       vi.mocked(teacherGroupService.listTeacherGroups).mockResolvedValue([
-        { id: TEST_IDS.group, name: 'Math', description: null, created_at: new Date() },
+        {
+          id: TEST_IDS.group,
+          name: 'Math',
+          description: 'Mathematics department',
+          created_at: new Date(),
+          teacher_count: 2,
+        },
       ]);
       const app = await createTestApp();
       const { agent } = await loginAs(app, 'admin');

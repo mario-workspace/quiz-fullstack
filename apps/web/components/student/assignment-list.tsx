@@ -9,13 +9,14 @@ interface AssignmentListProps {
   assignments: Assignment[];
   onSelect?: (assignmentId: string) => void;
   selectedId?: string;
+  title?: string;
 }
 
-export function AssignmentList({ assignments, onSelect, selectedId }: AssignmentListProps) {
+export function AssignmentList({ assignments, onSelect, selectedId, title = 'Assignments' }: AssignmentListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Assignments</CardTitle>
+        <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

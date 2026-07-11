@@ -2,6 +2,7 @@
 
 import { Navbar } from '@/components/navbar';
 import { Sidebar } from '@/components/sidebar';
+import { Chatbot } from '@/components/chatbot';
 import type { AuthUser } from '@/lib/auth';
 
 export function DashboardShell({ user, children }: { user: AuthUser; children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export function DashboardShell({ user, children }: { user: AuthUser; children: R
         <Sidebar user={user} />
         <main className="flex-1 p-6">{children}</main>
       </div>
+      <Chatbot />
     </div>
   );
 }

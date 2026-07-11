@@ -22,7 +22,7 @@ interface StudentEnrollFormProps {
 
 export function StudentEnrollForm({ classes }: StudentEnrollFormProps) {
   const [classId, setClassId] = useState('');
-  const [studentId, setStudentId] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
   const [students, setStudents] = useState<ClassStudent[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -37,14 +37,14 @@ export function StudentEnrollForm({ classes }: StudentEnrollFormProps) {
   }, [classId]);
 
   async function addStudent() {
-    if (!classId || !studentId) return;
+    if (!classId || !studentEmail) return;
     setLoading(true);
     try {
       await api(`/teacher/classes/${classId}/students`, {
         method: 'POST',
-        body: JSON.stringify({ studentId }),
+        body: JSON.stringify({ email: studentEmail }),
       });
-      setStudentId('');
+      setStudentEmail('');
       setStudents(await api<ClassStudent[]>(`/teacher/classes/${classId}/students`));
       toast({ title: 'Student enrolled', variant: 'success' });
     } catch (err) {
@@ -96,15 +96,16 @@ export function StudentEnrollForm({ classes }: StudentEnrollFormProps) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Student ID</Label>
+            <Label>Student Email</Label>
             <Input
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              placeholder="Student UUID"
+              type="email"
+              value={studentEmail}
+              onChange={(e) => setStudentEmail(e.target.value)}
+              placeholder="student@school.edu"
             />
           </div>
           <div className="flex items-end">
-            <Button onClick={addStudent} disabled={loading || !classId || !studentId} className="w-full">
+            <Button onClick={addStudent} disabled={loading || !classId || !studentEmail} className="w-full">
               Add Student
             </Button>
           </div>

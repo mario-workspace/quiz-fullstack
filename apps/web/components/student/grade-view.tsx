@@ -10,10 +10,14 @@ interface GradeViewProps {
 }
 
 function scoreColor(score: number) {
-  if (score >= 90) return 'text-green-600';
-  if (score >= 70) return 'text-blue-600';
-  if (score >= 50) return 'text-yellow-600';
-  return 'text-red-600';
+  if (score >= 90) return 'text-green-600 dark:text-green-400';
+  if (score >= 70) return 'text-blue-600 dark:text-blue-400';
+  if (score >= 50) return 'text-yellow-600 dark:text-yellow-400';
+  return 'text-red-600 dark:text-red-400';
+}
+
+function formatPercent(score: number) {
+  return `${Math.round(Number(score))}%`;
 }
 
 export function GradeView({ grades }: GradeViewProps) {
@@ -44,8 +48,8 @@ export function GradeView({ grades }: GradeViewProps) {
                   </p>
                 </div>
               </div>
-              <Badge className={`text-base font-bold ${scoreColor(g.score)}`}>
-                {g.score}%
+              <Badge className={`text-base font-bold ${scoreColor(Number(g.score))}`}>
+                {formatPercent(g.score)}
               </Badge>
             </div>
           ))}

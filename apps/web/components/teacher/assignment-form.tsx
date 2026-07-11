@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -83,12 +84,14 @@ export function AssignmentForm({ classes, onCreated }: AssignmentFormProps) {
               required
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="assign-desc">Description</Label>
-            <Input
+            <Textarea
               id="assign-desc"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={4}
+              placeholder="Assignment instructions..."
             />
           </div>
           <div className="space-y-2">

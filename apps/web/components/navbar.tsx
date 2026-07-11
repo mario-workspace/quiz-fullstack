@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { GraduationCap, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-provider';
 import { logout, type AuthUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
@@ -47,6 +48,7 @@ export function Navbar({ user }: { user: AuthUser }) {
           ))}
         </nav>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <span className="hidden text-sm text-muted-foreground sm:inline">{user.name}</span>
           <Button
             variant="ghost"

@@ -87,7 +87,7 @@ export async function getStudentGrade(submissionId: string) {
 }
 
 export async function listStudentGrades(studentId: string) {
-  return getDb()
+  const rows = await getDb()
     .selectFrom('grades')
     .innerJoin('submissions', 'submissions.id', 'grades.submission_id')
     .innerJoin('assignments', 'assignments.id', 'submissions.assignment_id')
@@ -104,6 +104,11 @@ export async function listStudentGrades(studentId: string) {
     .where('submissions.student_id', '=', studentId)
     .orderBy('grades.graded_at', 'desc')
     .execute();
+
+  return rows.map((row) => ({
+    ...row,
+    score: Number(row.score),
+  }));
 }
 
 export async function getStudentSubmission(assignmentId: string, studentId: string) {

@@ -10,6 +10,8 @@ export async function adminRoutes(app: FastifyInstance) {
   // Users CRUD
   app.get('/admin/users', async () => userService.listUsers());
 
+  app.get('/admin/teachers', async () => userService.listTeachers());
+
   app.post('/admin/users', async (request) => {
     const body = z
       .object({
@@ -85,11 +87,37 @@ export async function adminRoutes(app: FastifyInstance) {
     return { success: true };
   });
 
-  app.post('/admin/teacher-groups/:id/teachers', async (request) => {
+  app.post('/admin/teacher-groups/:id/teachers', async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
-    const body = z.object({ teacherId: z.string().uuid() }).parse(request.body);
-    await teacherGroupService.addTeacherToGroup(id, body.teacherId);
-    return { success: true };
+    const body = z
+      .object({
+        email: z.string().email().optional(),
+        emails: z.array(z.string().email()).min(1).optional(),
+      })
+      .refine((data) => data.email || (data.emails && data.emails.length > 0), {
+        message: 'Provide email or emails',
+      })
+      .parse(request.body);
+
+    const emails = body.emails ?? (body.email ? [body.email] : []);
+    const added: string[] = [];
+    const notFound: string[] = [];
+
+    for (const email of emails) {
+      const teacher = await userService.getUserByEmail(email);
+      if (!teacher || teacher.role !== 'teacher') {
+        notFound.push(email);
+        continue;
+      }
+      await teacherGroupService.addTeacherToGroup(id, teacher.id);
+      added.push(email);
+    }
+
+    if (added.length === 0) {
+      return reply.status(404).send({ error: 'No teachers found for the provided emails' });
+    }
+
+    return { success: true, added, notFound };
   });
 
   app.delete('/admin/teacher-groups/:groupId/teachers/:teacherId', async (request, reply) => {
