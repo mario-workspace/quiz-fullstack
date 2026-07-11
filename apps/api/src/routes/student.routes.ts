@@ -9,7 +9,12 @@ export async function studentRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireRole('student'));
 
   app.get('/student/stats', async (request) => {
-    return classService.getStudentStats(request.user!.sub);
+    const studentId = request.user!.sub;
+    const [stats, grades] = await Promise.all([
+      classService.getStudentStats(studentId),
+      submissionService.getStudentGradeStats(studentId),
+    ]);
+    return { ...stats, grades };
   });
 
   app.get('/student/classes', async (request) => {

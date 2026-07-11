@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { api } from '@/lib/api';
-import type { Assignment } from '@/lib/types';
+import type { Assignment, Grade } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 
 interface AssignmentViewDialogProps {
@@ -34,6 +34,7 @@ export function AssignmentViewDialog({
   onSubmitted,
 }: AssignmentViewDialogProps) {
   const [content, setContent] = useState('');
+  const [grade, setGrade] = useState<Pick<Grade, 'score' | 'feedback'> | null>(null);
   const [loadingSubmission, setLoadingSubmission] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,17 +44,26 @@ export function AssignmentViewDialog({
   useEffect(() => {
     if (!open || !assignment) {
       setContent('');
+      setGrade(null);
       return;
     }
 
     setLoadingSubmission(true);
-    api<{ submission: { content: string } | null; grade: { score: number } | null }>(
+    api<{ submission: { content: string } | null; grade: Grade | null }>(
       `/student/assignments/${assignment.id}/submission`,
     )
       .then((data) => {
         setContent(data.submission?.content ?? '');
+        setGrade(
+          data.grade
+            ? { score: Number(data.grade.score), feedback: data.grade.feedback }
+            : null,
+        );
       })
-      .catch(() => setContent(''))
+      .catch(() => {
+        setContent('');
+        setGrade(null);
+      })
       .finally(() => setLoadingSubmission(false));
   }, [open, assignment]);
 
@@ -113,9 +123,18 @@ export function AssignmentViewDialog({
               readOnly
             />
           </div>
-          {assignment.score != null && (
-            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
-              <p className="font-medium">Grade: {assignment.score}%</p>
+          {(grade != null || assignment.score != null) && (
+            <div className="space-y-1 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
+              <p className="font-medium">Grade: {grade?.score ?? assignment.score}%</p>
+              {grade != null &&
+                (grade.feedback?.trim() ? (
+                  <p className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Teacher feedback:</span>{' '}
+                    {grade.feedback}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">No teacher feedback provided.</p>
+                ))}
             </div>
           )}
           <div className="space-y-2">

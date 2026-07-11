@@ -75,6 +75,7 @@ vi.mock('../services/submission.service', () => ({
   listSubmissionsForAssignment: vi.fn(),
   gradeSubmission: vi.fn(),
   listStudentGrades: vi.fn(),
+  getStudentGradeStats: vi.fn(),
   getStudentSubmission: vi.fn(),
   getStudentGrade: vi.fn(),
 }));

@@ -95,6 +95,29 @@ export async function getStudentGrade(submissionId: string) {
   return getDb().selectFrom('grades').selectAll().where('submission_id', '=', submissionId).executeTakeFirst();
 }
 
+export async function getStudentGradeStats(studentId: string) {
+  const rows = await getDb()
+    .selectFrom('grades')
+    .innerJoin('submissions', 'submissions.id', 'grades.submission_id')
+    .select('grades.score')
+    .where('submissions.student_id', '=', studentId)
+    .execute();
+
+  if (rows.length === 0) {
+    return { average: null, max: null, min: null, count: 0 };
+  }
+
+  const scores = rows.map((r) => Number(r.score));
+  const sum = scores.reduce((total, score) => total + score, 0);
+
+  return {
+    average: Math.round(sum / scores.length),
+    max: Math.max(...scores),
+    min: Math.min(...scores),
+    count: scores.length,
+  };
+}
+
 export async function listStudentGrades(studentId: string) {
   const rows = await getDb()
     .selectFrom('grades')

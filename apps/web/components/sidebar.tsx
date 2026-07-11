@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import {
   BookOpen,
   ClipboardList,
-  GraduationCap,
   LayoutDashboard,
   Users,
   UsersRound,
@@ -32,7 +31,6 @@ const navItems: Record<
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/student', label: 'My Classes', icon: BookOpen },
     { href: '/dashboard/student/assignments', label: 'Assignments', icon: ClipboardList },
-    { href: '/dashboard/student/grades', label: 'Grades', icon: GraduationCap },
   ],
 };
 
