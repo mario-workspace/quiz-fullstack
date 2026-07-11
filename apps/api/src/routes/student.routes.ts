@@ -8,6 +8,10 @@ import * as submissionService from '../services/submission.service';
 export async function studentRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireRole('student'));
 
+  app.get('/student/stats', async (request) => {
+    return classService.getStudentStats(request.user!.sub);
+  });
+
   app.get('/student/classes', async (request) => {
     return classService.listStudentClasses(request.user!.sub);
   });
@@ -25,7 +29,8 @@ export async function studentRoutes(app: FastifyInstance) {
   });
 
   app.get('/student/assignments', async (request) => {
-    return assignmentService.listStudentAssignments(request.user!.sub);
+    const query = z.object({ classId: z.string().uuid().optional() }).parse(request.query);
+    return assignmentService.listStudentAssignments(request.user!.sub, query.classId);
   });
 
   app.post('/student/assignments/:id/submit', async (request, reply) => {
@@ -35,6 +40,10 @@ export async function studentRoutes(app: FastifyInstance) {
     const assignment = await assignmentService.getAssignment(id);
     if (!assignment || !assignment.published) {
       return reply.status(404).send({ error: 'Assignment not found' });
+    }
+
+    if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
+      return reply.status(400).send({ error: 'Assignment is past due date' });
     }
 
     const enrolled = await classService.listStudentClasses(request.user!.sub);

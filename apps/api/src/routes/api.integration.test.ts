@@ -52,6 +52,7 @@ vi.mock('../services/class.service', () => ({
   removeStudentFromClass: vi.fn(),
   listClassStudents: vi.fn(),
   listStudentClasses: vi.fn(),
+  getStudentStats: vi.fn(),
 }));
 
 vi.mock('../services/assignment.service', () => ({

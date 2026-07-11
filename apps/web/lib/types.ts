@@ -26,6 +26,7 @@ export interface ClassItem {
   name: string;
   description: string | null;
   teacher_id?: string;
+  teacher_name?: string;
   created_at?: string;
   student_count?: number;
 }
@@ -45,6 +46,8 @@ export interface Assignment {
   published: boolean;
   created_at?: string;
   class_name?: string;
+  submission_id?: string | null;
+  score?: number | null;
 }
 
 export interface Submission {

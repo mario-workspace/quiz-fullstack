@@ -20,6 +20,7 @@ const links: Record<AuthUser['role'], { href: string; label: string }[]> = {
   ],
   student: [
     { href: '/dashboard/student', label: 'Classes' },
+    { href: '/dashboard/student/assignments', label: 'Assignments' },
     { href: '/dashboard/student/grades', label: 'Grades' },
   ],
 };

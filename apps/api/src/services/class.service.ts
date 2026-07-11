@@ -135,13 +135,36 @@ export async function listStudentClasses(studentId: string) {
   return getDb()
     .selectFrom('class_enrollments')
     .innerJoin('classes', 'classes.id', 'class_enrollments.class_id')
+    .innerJoin('users', 'users.id', 'classes.teacher_id')
     .select([
       'classes.id',
       'classes.name',
       'classes.description',
       'classes.teacher_id',
+      'users.name as teacher_name',
       'class_enrollments.enrolled_at',
     ])
     .where('class_enrollments.student_id', '=', studentId)
     .execute();
+}
+
+export async function getStudentStats(studentId: string) {
+  const classCount = await getDb()
+    .selectFrom('class_enrollments')
+    .select((eb) => eb.fn.countAll().as('count'))
+    .where('student_id', '=', studentId)
+    .executeTakeFirst();
+
+  const assignmentCount = await getDb()
+    .selectFrom('assignments')
+    .innerJoin('class_enrollments', 'class_enrollments.class_id', 'assignments.class_id')
+    .select((eb) => eb.fn.countAll().as('count'))
+    .where('class_enrollments.student_id', '=', studentId)
+    .where('assignments.published', '=', true)
+    .executeTakeFirst();
+
+  return {
+    totalClasses: Number(classCount?.count ?? 0),
+    totalAssignments: Number(assignmentCount?.count ?? 0),
+  };
 }

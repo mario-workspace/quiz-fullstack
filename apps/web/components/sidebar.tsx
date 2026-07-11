@@ -31,6 +31,7 @@ const navItems: Record<
   student: [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/student', label: 'My Classes', icon: BookOpen },
+    { href: '/dashboard/student/assignments', label: 'Assignments', icon: ClipboardList },
     { href: '/dashboard/student/grades', label: 'Grades', icon: GraduationCap },
   ],
 };

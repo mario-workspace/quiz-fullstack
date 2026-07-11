@@ -106,6 +106,45 @@ export async function listTeacherAssignments(teacherId: string, classId?: string
   return query.execute();
 }
 
+export async function listStudentAssignments(studentId: string, classId?: string) {
+  let query = getDb()
+    .selectFrom('assignments')
+    .innerJoin('class_enrollments', 'class_enrollments.class_id', 'assignments.class_id')
+    .innerJoin('classes', 'classes.id', 'assignments.class_id')
+    .leftJoin('submissions', (join) =>
+      join
+        .onRef('submissions.assignment_id', '=', 'assignments.id')
+        .on('submissions.student_id', '=', studentId),
+    )
+    .leftJoin('grades', 'grades.submission_id', 'submissions.id')
+    .select([
+      'assignments.id',
+      'assignments.class_id',
+      'assignments.title',
+      'assignments.description',
+      'assignments.due_date',
+      'assignments.published',
+      'assignments.created_at',
+      'classes.name as class_name',
+      'submissions.id as submission_id',
+      'grades.score',
+    ])
+    .where('class_enrollments.student_id', '=', studentId)
+    .where('assignments.published', '=', true)
+    .orderBy('assignments.due_date', 'asc');
+
+  if (classId) {
+    query = query.where('assignments.class_id', '=', classId);
+  }
+
+  const rows = await query.execute();
+
+  return rows.map((row) => ({
+    ...row,
+    score: row.score != null ? Number(row.score) : null,
+  }));
+}
+
 export async function listStudentAssignmentsForClass(studentId: string, classId: string) {
   const enrollment = await getDb()
     .selectFrom('class_enrollments')
@@ -115,38 +154,5 @@ export async function listStudentAssignmentsForClass(studentId: string, classId:
     .executeTakeFirst();
   if (!enrollment) return null;
 
-  return getDb()
-    .selectFrom('assignments')
-    .select([
-      'assignments.id',
-      'assignments.class_id',
-      'assignments.title',
-      'assignments.description',
-      'assignments.due_date',
-      'assignments.published',
-      'assignments.created_at',
-    ])
-    .where('class_id', '=', classId)
-    .where('published', '=', true)
-    .orderBy('assignments.due_date', 'asc')
-    .execute();
-}
-
-export async function listStudentAssignments(studentId: string) {
-  return getDb()
-    .selectFrom('assignments')
-    .innerJoin('class_enrollments', 'class_enrollments.class_id', 'assignments.class_id')
-    .select([
-      'assignments.id',
-      'assignments.class_id',
-      'assignments.title',
-      'assignments.description',
-      'assignments.due_date',
-      'assignments.published',
-      'assignments.created_at',
-    ])
-    .where('class_enrollments.student_id', '=', studentId)
-    .where('assignments.published', '=', true)
-    .orderBy('assignments.due_date', 'asc')
-    .execute();
+  return listStudentAssignments(studentId, classId);
 }
