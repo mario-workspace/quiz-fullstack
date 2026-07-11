@@ -26,9 +26,10 @@ describe('api', () => {
       `${getApiUrl()}/auth/me`,
       expect.objectContaining({
         credentials: 'include',
-        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       }),
     );
+    const callHeaders = fetchMock.mock.calls[0][1].headers as Record<string, string>;
+    expect(callHeaders['Content-Type']).toBeUndefined();
   });
 
   it('throws with server error message', async () => {
@@ -49,6 +50,21 @@ describe('api', () => {
     });
 
     await expect(api('/auth/me')).rejects.toThrow('Bad Gateway');
+  });
+
+  it('sets Content-Type when body is provided', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ user: { id: '1' } }),
+    });
+
+    await api('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'a@b.com', password: 'x' }),
+    });
+
+    const callHeaders = fetchMock.mock.calls[0][1].headers as Record<string, string>;
+    expect(callHeaders['Content-Type']).toBe('application/json');
   });
 
   it('passes custom fetch options', async () => {

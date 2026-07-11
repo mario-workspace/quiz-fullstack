@@ -85,9 +85,14 @@ export async function migrate(): Promise<void> {
   console.log('Migration complete');
 }
 
-if (require.main === module) {
-  migrate().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+const isDirectRun =
+  typeof require !== 'undefined' && require.main === module;
+
+if (isDirectRun) {
+  migrate()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
 }

@@ -1,9 +1,11 @@
 import { spawn } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 
-function run(name: string, command: string, args: string[], cwd?: string) {
+function run(name, command, args, cwd) {
   const child = spawn(command, args, {
     cwd: cwd ?? root,
     stdio: 'inherit',
@@ -20,5 +22,5 @@ function run(name: string, command: string, args: string[], cwd?: string) {
 }
 
 console.log('Starting API and Web servers...');
-run('api', 'npx', ['vite-node', 'apps/api/src/index.ts']);
+run('api', 'npx', ['vite-node', 'scripts/start-api.mjs']);
 run('web', 'npx', ['next', 'dev', 'apps/web', '-p', '3000']);

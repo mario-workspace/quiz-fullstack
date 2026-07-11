@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "dev:api": "vite-node apps/api/src/index.ts",
+    "dev:api": "vite-node scripts/start-api.mjs",
     "dev:web": "next dev apps/web -p 3000",
     "build": "npm run build:api && npm run build:web",
     "build:api": "tsc -p apps/api/tsconfig.json",
@@ -17,7 +17,7 @@
     "start:api": "node apps/api/dist/index.js",
     "start:web": "next start apps/web -p 3000",
     "start": "node scripts/dev.mjs",
-    "db:migrate": "vite-node apps/api/src/db/migrate.ts",
+    "db:migrate": "vite-node scripts/migrate.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
