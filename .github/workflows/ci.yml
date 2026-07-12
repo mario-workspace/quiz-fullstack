@@ -108,8 +108,7 @@ jobs:
           target: api
           build-args: |
             NEXT_PUBLIC_API_URL=http://localhost:3001
-          cache-from: type=gha,scope=school-portal-api-v2
-          cache-to: type=gha,mode=max,scope=school-portal-api-v2
+          cache-to: type=gha,mode=max,scope=school-portal-api-v3
 
       - uses: docker/build-push-action@v6
         with:
@@ -120,5 +119,4 @@ jobs:
           target: web
           build-args: |
             NEXT_PUBLIC_API_URL=http://localhost:3001
-          cache-from: type=gha,scope=school-portal-web-v2
-          cache-to: type=gha,mode=max,scope=school-portal-web-v2
+          cache-to: type=gha,mode=max,scope=school-portal-web-v3
