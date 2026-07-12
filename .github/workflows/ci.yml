@@ -95,9 +95,17 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
+      - name: Verify Dockerfile web stage
+        run: |
+          echo "Dockerfile web stage:"
+          sed -n '/^FROM node:22-alpine AS web-standalone/,$p' Dockerfile
+
       - name: Log in to Docker Hub
         if: steps.dockerhub.outputs.push == 'true'
         run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Clear BuildKit cache
+        run: docker buildx prune --all --force
 
       - uses: docker/build-push-action@v6
         with:
@@ -108,7 +116,11 @@ jobs:
           target: api
           build-args: |
             NEXT_PUBLIC_API_URL=http://localhost:3001
-          cache-to: type=gha,mode=max,scope=school-portal-api-v3
+          no-cache: true
+          pull: true
+
+      - name: Clear BuildKit cache before web image
+        run: docker buildx prune --all --force
 
       - uses: docker/build-push-action@v6
         with:
@@ -116,7 +128,8 @@ jobs:
           file: Dockerfile
           push: ${{ steps.dockerhub.outputs.push == 'true' }}
           tags: ${{ steps.tags.outputs.web }}
-          target: web
+          target: web-standalone
           build-args: |
             NEXT_PUBLIC_API_URL=http://localhost:3001
-          cache-to: type=gha,mode=max,scope=school-portal-web-v3
+          no-cache: true
+          pull: true

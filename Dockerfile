@@ -26,7 +26,7 @@ COPY --from=build /app/apps/api/src/db/migrate.ts ./apps/api/src/db/migrate.ts
 EXPOSE 3001
 CMD ["node", "apps/api/dist/index.js"]
 
-FROM node:22-alpine AS web
+FROM node:22-alpine AS web-standalone
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
