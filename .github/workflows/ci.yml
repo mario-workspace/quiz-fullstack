@@ -94,42 +94,57 @@ jobs:
           fi
 
       - uses: docker/setup-buildx-action@v3
-
-      - name: Verify Dockerfile web stage
-        run: |
-          echo "Dockerfile web stage:"
-          sed -n '/^FROM node:22-alpine AS web-standalone/,$p' Dockerfile
+        with:
+          driver: docker
 
       - name: Log in to Docker Hub
         if: steps.dockerhub.outputs.push == 'true'
         run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-      - name: Clear BuildKit cache
-        run: docker buildx prune --all --force
+      - name: Build and push API image
+        env:
+          TAG: ${{ steps.tags.outputs.api }}
+          PUSH: ${{ steps.dockerhub.outputs.push }}
+        run: |
+          set -euo pipefail
+          echo "=== Dockerfile (api) ==="
+          tail -20 Dockerfile
+          OUTPUT="type=docker"
+          if [ "$PUSH" = "true" ]; then
+            OUTPUT="type=registry"
+          fi
+          docker buildx build \
+            --file Dockerfile \
+            --target api \
+            --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 \
+            --no-cache \
+            --pull \
+            --provenance=false \
+            --sbom=false \
+            --output "$OUTPUT" \
+            --tag "$TAG" \
+            .
 
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile
-          push: ${{ steps.dockerhub.outputs.push == 'true' }}
-          tags: ${{ steps.tags.outputs.api }}
-          target: api
-          build-args: |
-            NEXT_PUBLIC_API_URL=http://localhost:3001
-          no-cache: true
-          pull: true
-
-      - name: Clear BuildKit cache before web image
-        run: docker buildx prune --all --force
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile
-          push: ${{ steps.dockerhub.outputs.push == 'true' }}
-          tags: ${{ steps.tags.outputs.web }}
-          target: web-standalone
-          build-args: |
-            NEXT_PUBLIC_API_URL=http://localhost:3001
-          no-cache: true
-          pull: true
+      - name: Build and push Web image
+        env:
+          TAG: ${{ steps.tags.outputs.web }}
+          PUSH: ${{ steps.dockerhub.outputs.push }}
+        run: |
+          set -euo pipefail
+          echo "=== Dockerfile.web ==="
+          cat Dockerfile.web
+          OUTPUT="type=docker"
+          if [ "$PUSH" = "true" ]; then
+            OUTPUT="type=registry"
+          fi
+          docker buildx build \
+            --file Dockerfile.web \
+            --target runner \
+            --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 \
+            --no-cache \
+            --pull \
+            --provenance=false \
+            --sbom=false \
+            --output "$OUTPUT" \
+            --tag "$TAG" \
+            .
