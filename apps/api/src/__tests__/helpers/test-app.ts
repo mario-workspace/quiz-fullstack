@@ -62,7 +62,7 @@ export async function loginAndGetCookie(
 export async function loginAs(
   app: FastifyInstance,
   role: UserRole,
-): Promise<{ agent: ReturnType<typeof getAgent>; user: ReturnType<typeof mockUser> }> {
+): Promise<{ agent: ReturnType<typeof getAgent>; user: ReturnType<typeof mockUser>; loginStatus: number }> {
   const user = mockUser(role);
   const agent = getAgent(app);
   const res = await agent.post('/auth/login').send({ email: user.email, password: `${role}123` });
