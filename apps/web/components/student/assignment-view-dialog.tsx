@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { formatMarksBadge, getMarksBadgeVariant } from '@/lib/marks';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +29,8 @@ function isPastDue(dueDate: string | null): boolean {
   return new Date(dueDate) < new Date();
 }
 
+export { getMarksBadgeVariant as getGradeBadgeVariant } from '@/lib/marks';
+
 export function AssignmentViewDialog({
   assignment,
   open,
@@ -39,7 +43,9 @@ export function AssignmentViewDialog({
   const [submitting, setSubmitting] = useState(false);
 
   const pastDue = assignment ? isPastDue(assignment.due_date) : false;
-  const readOnly = pastDue;
+  const gradedScore = grade?.score ?? assignment?.score ?? null;
+  const isGraded = gradedScore != null;
+  const readOnly = pastDue || isGraded;
 
   useEffect(() => {
     if (!open || !assignment) {
@@ -93,11 +99,28 @@ export function AssignmentViewDialog({
 
   if (!assignment) return null;
 
+  const readOnlyMessage = isGraded
+    ? 'This assignment has been marked. You can view your work and feedback but cannot edit or resubmit.'
+    : pastDue
+      ? 'This assignment is past its due date. You can view your work but cannot edit or submit.'
+      : null;
+
+  const workPlaceholder = isGraded
+    ? 'View only — marks recorded'
+    : pastDue
+      ? 'View only — past due date'
+      : 'Enter your submission...';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Assignment Details</DialogTitle>
+        <DialogHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+          <DialogTitle className="pr-2">Assignment Details</DialogTitle>
+          {isGraded && (
+            <Badge variant={getMarksBadgeVariant(gradedScore)} className="shrink-0 text-sm">
+              {formatMarksBadge(gradedScore)}
+            </Badge>
+          )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -123,18 +146,16 @@ export function AssignmentViewDialog({
               readOnly
             />
           </div>
-          {(grade != null || assignment.score != null) && (
+          {isGraded && (
             <div className="space-y-1 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
-              <p className="font-medium">Grade: {grade?.score ?? assignment.score}%</p>
-              {grade != null &&
-                (grade.feedback?.trim() ? (
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Teacher feedback:</span>{' '}
-                    {grade.feedback}
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground">No teacher feedback provided.</p>
-                ))}
+              {grade?.feedback?.trim() ? (
+                <p className="text-muted-foreground">
+                  <span className="font-medium text-foreground">Teacher feedback:</span>{' '}
+                  {grade.feedback}
+                </p>
+              ) : (
+                <p className="text-muted-foreground">No teacher feedback provided.</p>
+              )}
             </div>
           )}
           <div className="space-y-2">
@@ -144,15 +165,13 @@ export function AssignmentViewDialog({
               className="flex min-h-[120px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-70"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder={readOnly ? 'View only — past due date' : 'Enter your submission...'}
+              placeholder={workPlaceholder}
               disabled={readOnly || loadingSubmission}
               readOnly={readOnly}
               required={!readOnly}
             />
-            {pastDue && (
-              <p className="text-xs text-muted-foreground">
-                This assignment is past its due date. You can view your work but cannot edit or submit.
-              </p>
+            {readOnlyMessage && (
+              <p className="text-xs text-muted-foreground">{readOnlyMessage}</p>
             )}
           </div>
           <DialogFooter>
@@ -176,7 +195,7 @@ export function getAssignmentStatus(assignment: Assignment): {
   variant: 'success' | 'secondary' | 'destructive';
 } {
   const pastDue = isPastDue(assignment.due_date);
-  if (assignment.score != null) return { label: 'Graded', variant: 'success' };
+  if (assignment.score != null) return { label: 'Marked', variant: 'success' };
   if (assignment.submission_id) return { label: 'Submitted', variant: 'secondary' };
   if (pastDue) return { label: 'Overdue', variant: 'destructive' };
   return { label: 'Pending', variant: 'secondary' };

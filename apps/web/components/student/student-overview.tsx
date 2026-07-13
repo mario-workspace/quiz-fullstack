@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BookOpen, ClipboardList, GraduationCap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/lib/api';
+import { formatMarks } from '@/lib/marks';
 import { toast } from '@/components/ui/use-toast';
 
 interface StudentGradeStats {
@@ -94,7 +95,7 @@ export function StudentOverview() {
 
       <Card className="transition-shadow hover:shadow-md sm:col-span-2 lg:col-span-1">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Grades</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Marks</CardTitle>
           <GraduationCap className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
@@ -102,19 +103,19 @@ export function StudentOverview() {
             <dl className="grid grid-cols-3 gap-3 text-center">
               <div>
                 <dt className="text-xs text-muted-foreground">Average</dt>
-                <dd className="text-2xl font-bold">{stats.grades.average}%</dd>
+                <dd className="text-2xl font-bold">{formatMarks(stats.grades.average!)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Max</dt>
-                <dd className="text-2xl font-bold">{stats.grades.max}%</dd>
+                <dd className="text-2xl font-bold">{formatMarks(stats.grades.max!)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Min</dt>
-                <dd className="text-2xl font-bold">{stats.grades.min}%</dd>
+                <dd className="text-2xl font-bold">{formatMarks(stats.grades.min!)}</dd>
               </div>
             </dl>
           ) : (
-            <p className="text-sm text-muted-foreground">No graded assignments yet.</p>
+            <p className="text-sm text-muted-foreground">No marked assignments yet.</p>
           )}
         </CardContent>
       </Card>

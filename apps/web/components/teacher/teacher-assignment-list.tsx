@@ -108,7 +108,7 @@ export function TeacherAssignmentList({
                       variant={selectedId === a.id ? 'default' : 'outline'}
                       onClick={() => onSelect(a.id)}
                     >
-                      Grade
+                      Mark
                     </Button>
                   </div>
                 </div>

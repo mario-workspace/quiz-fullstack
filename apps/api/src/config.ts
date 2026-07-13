@@ -9,6 +9,9 @@ const envSchema = z.object({
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
   GITHUB_CALLBACK_URL: z.string().default('http://localhost:3001/auth/github/callback'),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+  OPENAI_BASE_URL: z.string().default('https://api.openai.com/v1'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 

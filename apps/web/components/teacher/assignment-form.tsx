@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { api } from '@/lib/api';
 import type { ClassItem } from '@/lib/types';
+import { getMinDueDateInputValue, isDueDateInPast } from '@/lib/utils';
 import { toast } from '@/components/ui/use-toast';
 
 interface AssignmentFormProps {
@@ -28,6 +29,14 @@ export function AssignmentForm({ classes, onCreated }: AssignmentFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (form.dueDate && isDueDateInPast(form.dueDate)) {
+      toast({
+        title: 'Invalid due date',
+        description: 'Due date must be today or a future date.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setLoading(true);
     try {
       await api('/teacher/assignments', {
@@ -99,6 +108,7 @@ export function AssignmentForm({ classes, onCreated }: AssignmentFormProps) {
             <Input
               id="assign-due"
               type="date"
+              min={getMinDueDateInputValue()}
               value={form.dueDate}
               onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
             />

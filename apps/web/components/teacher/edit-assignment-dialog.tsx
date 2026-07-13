@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { api } from '@/lib/api';
 import type { Assignment } from '@/lib/types';
+import { getMinDueDateInputValue, isDueDateInPast } from '@/lib/utils';
 import { toast } from '@/components/ui/use-toast';
 
 interface EditAssignmentDialogProps {
@@ -44,6 +45,15 @@ export function EditAssignmentDialog({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!assignment) return;
+
+    if (form.dueDate && isDueDateInPast(form.dueDate)) {
+      toast({
+        title: 'Invalid due date',
+        description: 'Due date must be today or a future date.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -99,6 +109,7 @@ export function EditAssignmentDialog({
             <Input
               id="edit-assign-due"
               type="date"
+              min={getMinDueDateInputValue()}
               value={form.dueDate}
               onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
             />

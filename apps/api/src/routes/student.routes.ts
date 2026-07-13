@@ -51,6 +51,14 @@ export async function studentRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Assignment is past due date' });
     }
 
+    const existing = await submissionService.getStudentSubmission(id, request.user!.sub);
+    if (existing) {
+      const existingGrade = await submissionService.getStudentGrade(existing.id);
+      if (existingGrade) {
+        return reply.status(400).send({ error: 'Assignment is already marked and cannot be edited' });
+      }
+    }
+
     const enrolled = await classService.listStudentClasses(request.user!.sub);
     if (!enrolled.some((c) => c.id === assignment.class_id)) {
       return reply.status(403).send({ error: 'Not enrolled in this class' });

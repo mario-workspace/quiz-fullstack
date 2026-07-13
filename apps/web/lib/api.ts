@@ -1,7 +1,13 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
 function getBaseUrl(): string {
-  return API_BASE_URL;
+  const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (configured) {
+    return configured;
+  }
+  // Browser: same-origin proxy via Next.js rewrites so auth cookies work on the web app.
+  if (typeof window !== 'undefined') {
+    return '/api';
+  }
+  return 'http://localhost:3001';
 }
 
 export function getApiUrl(): string {

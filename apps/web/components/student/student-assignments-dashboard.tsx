@@ -18,6 +18,7 @@ import {
   AssignmentViewDialog,
   getAssignmentStatus,
 } from '@/components/student/assignment-view-dialog';
+import { formatMarks } from '@/lib/marks';
 import { api } from '@/lib/api';
 import type { Assignment, ClassItem } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
@@ -153,7 +154,7 @@ export function StudentAssignmentsDashboard() {
                       <th className="pb-3 pr-4 font-medium">Assignment</th>
                       <th className="pb-3 pr-4 font-medium">Class</th>
                       <th className="pb-3 pr-4 font-medium">Due Date</th>
-                      <th className="pb-3 pr-4 font-medium">Grade</th>
+                      <th className="pb-3 pr-4 font-medium">Marks</th>
                       <th className="pb-3 pr-4 font-medium">Status</th>
                       <th className="pb-3 font-medium">Actions</th>
                     </tr>
@@ -169,7 +170,7 @@ export function StudentAssignmentsDashboard() {
                             {a.due_date ? new Date(a.due_date).toLocaleDateString() : '—'}
                           </td>
                           <td className="py-3 pr-4 text-muted-foreground">
-                            {a.score != null ? `${a.score}%` : '—'}
+                            {a.score != null ? formatMarks(a.score) : '—'}
                           </td>
                           <td className="py-3 pr-4">
                             <Badge variant={status.variant}>{status.label}</Badge>

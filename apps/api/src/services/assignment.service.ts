@@ -1,4 +1,5 @@
 import { getDb } from '../db';
+import { validateDueDateNotPast } from './assignment.validation';
 
 export interface CreateAssignmentInput {
   classId: string;
@@ -26,6 +27,7 @@ export async function getAssignment(id: string) {
 }
 
 export async function createAssignment(input: CreateAssignmentInput) {
+  validateDueDateNotPast(input.dueDate);
   return getDb()
     .insertInto('assignments')
     .values({
@@ -40,6 +42,9 @@ export async function createAssignment(input: CreateAssignmentInput) {
 }
 
 export async function updateAssignment(id: string, input: UpdateAssignmentInput) {
+  if (input.dueDate !== undefined) {
+    validateDueDateNotPast(input.dueDate);
+  }
   const updates: Record<string, unknown> = {};
   if (input.title) updates.title = input.title;
   if (input.description !== undefined) updates.description = input.description;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cn } from './utils';
+import { cn, getMinDueDateInputValue, isDueDateInPast } from './utils';
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -21,5 +21,17 @@ describe('cn', () => {
   it('merges tailwind conflicts correctly', () => {
     expect(cn('text-sm', 'text-lg')).toBe('text-lg');
     expect(cn('p-2', 'p-4')).toBe('p-4');
+  });
+});
+
+describe('due date helpers', () => {
+  it('returns today in YYYY-MM-DD format', () => {
+    const min = getMinDueDateInputValue();
+    expect(min).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('detects past due dates', () => {
+    expect(isDueDateInPast('2000-01-01')).toBe(true);
+    expect(isDueDateInPast(getMinDueDateInputValue())).toBe(false);
   });
 });

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/lib/api';
+import { formatMarks, formatMarksBadge } from '@/lib/marks';
 import type { Submission } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 
@@ -33,11 +34,11 @@ export function GradeForm({ submission, onGraded }: GradeFormProps) {
         method: 'POST',
         body: JSON.stringify({ score, feedback: feedback || undefined }),
       });
-      toast({ title: 'Grade submitted', variant: 'success' });
+      toast({ title: 'Marks submitted', variant: 'success' });
       onGraded();
     } catch (err) {
       toast({
-        title: 'Grading failed',
+        title: 'Marking failed',
         description: err instanceof Error ? err.message : 'Unknown error',
         variant: 'destructive',
       });
@@ -54,7 +55,7 @@ export function GradeForm({ submission, onGraded }: GradeFormProps) {
       className="mt-3 grid gap-3 rounded-md border border-border bg-muted/30 p-3 md:grid-cols-3"
     >
       <div className="space-y-1">
-        <Label>Score (0–100)</Label>
+        <Label>Marks (0–100)</Label>
         <Input
           type="number"
           min={0}
@@ -70,7 +71,7 @@ export function GradeForm({ submission, onGraded }: GradeFormProps) {
       </div>
       <div className="flex items-end">
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? 'Saving...' : isUpdate ? 'Update Grade' : 'Submit Grade'}
+          {loading ? 'Saving...' : isUpdate ? 'Update Marks' : 'Submit Marks'}
         </Button>
       </div>
     </form>
@@ -134,7 +135,7 @@ export function SubmissionsPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Submissions & Grading</CardTitle>
+        <CardTitle className="text-lg">Submissions & Marking</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-2">
@@ -149,30 +150,30 @@ export function SubmissionsPanel({
         </div>
         <div className="space-y-3">
           {submissions.map((s) => {
-            const graded = s.score != null;
+            const marked = s.score != null;
             return (
               <div key={s.id} className="rounded-lg border border-border p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium">{s.student_name}</p>
-                      {graded && (
-                        <Badge variant="success">{s.score}%</Badge>
+                      {marked && (
+                        <Badge variant="success">{formatMarksBadge(s.score!)}</Badge>
                       )}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{s.content}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Submitted {new Date(s.submitted_at).toLocaleString()}
                     </p>
-                    {graded && (
+                    {marked && (
                       <div className="mt-2 rounded-md bg-muted/40 px-3 py-2 text-sm">
-                        <p className="font-medium text-foreground">Grade: {s.score}%</p>
+                        <p className="font-medium text-foreground">Marks: {formatMarks(s.score!)}</p>
                         {s.feedback?.trim() && (
                           <p className="mt-1 text-muted-foreground">Feedback: {s.feedback}</p>
                         )}
                         {s.graded_at && (
                           <p className="mt-1 text-xs text-muted-foreground">
-                            Graded {new Date(s.graded_at).toLocaleString()}
+                            Marked {new Date(s.graded_at).toLocaleString()}
                           </p>
                         )}
                       </div>
@@ -183,7 +184,7 @@ export function SubmissionsPanel({
                     variant={gradingId === s.id ? 'default' : 'outline'}
                     onClick={() => setGradingId(gradingId === s.id ? null : s.id)}
                   >
-                    {graded ? 'Regrade' : 'Grade'}
+                    {marked ? 'Remark' : 'Mark'}
                   </Button>
                 </div>
                 {gradingId === s.id && (
