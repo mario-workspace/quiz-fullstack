@@ -41,8 +41,8 @@ export default function LoginPageClient() {
       </div>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-            <GraduationCap className="h-7 w-7 text-blue-600" />
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+            <GraduationCap className="h-7 w-7 text-primary" />
           </div>
           <CardTitle>School Portal</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
@@ -71,7 +71,9 @@ export default function LoginPageClient() {
               />
             </div>
             {error && (
-              <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+              <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
@@ -80,10 +82,10 @@ export default function LoginPageClient() {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-slate-200" />
+              <span className="w-full border-t border-border" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase tracking-wide text-slate-400">
-              <span className="bg-white px-2">or</span>
+            <div className="relative flex justify-center text-xs uppercase tracking-wide text-muted-foreground">
+              <span className="bg-card px-2">or</span>
             </div>
           </div>
 
@@ -94,7 +96,7 @@ export default function LoginPageClient() {
             </Button>
           </Link>
 
-          <p className="mt-4 text-center text-xs text-slate-500">
+          <p className="mt-4 text-center text-xs text-muted-foreground">
             Demo: admin@school.edu / admin123
           </p>
         </CardContent>

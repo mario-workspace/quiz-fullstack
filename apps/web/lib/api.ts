@@ -15,7 +15,12 @@ export function getApiUrl(): string {
 }
 
 export function getOAuthUrl(): string {
-  return `${getBaseUrl()}/auth/github`;
+  const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (configured) {
+    return `${configured}/auth/github`;
+  }
+  // Same on server and client — relative URL via Next.js /api rewrite.
+  return '/api/auth/github';
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {

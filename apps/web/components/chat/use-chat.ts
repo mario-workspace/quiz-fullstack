@@ -18,24 +18,34 @@ export function useChat() {
     setOpen((prev) => !prev);
   }, []);
 
+  const clearConversation = useCallback(() => {
+    setMessages([CHAT_WELCOME_MESSAGE]);
+    setInput('');
+  }, []);
+
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || loading) return false;
+
+      const history = messages.slice(1);
 
       setInput('');
       setMessages((prev) => [...prev, { role: 'user', content: trimmed }]);
       setLoading(true);
 
       try {
-        const reply = await sendChatMessage(trimmed, messages.slice(1));
+        const reply = await sendChatMessage(trimmed, history);
         setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
         return true;
       } catch (err) {
         const description = err instanceof Error ? err.message : 'Unknown error';
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', content: `Sorry, I could not answer that: ${description}` },
+          {
+            role: 'assistant',
+            content: `Sorry, I couldn't reach the AI right now. ${description}\n\nTry a quick question like "How many classes am I in?" or say "help".`,
+          },
         ]);
         toast({ title: 'Chat error', description, variant: 'destructive' });
         return false;
@@ -43,7 +53,7 @@ export function useChat() {
         setLoading(false);
       }
     },
-    [loading],
+    [loading, messages],
   );
 
   return {
@@ -55,6 +65,7 @@ export function useChat() {
     loading,
     messages,
     sendMessage,
+    clearConversation,
   };
 }
 

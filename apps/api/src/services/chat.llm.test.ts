@@ -8,6 +8,7 @@ vi.mock('../config', () => ({
     OPENAI_API_KEY: 'test-key',
     OPENAI_MODEL: 'gpt-4o-mini',
     OPENAI_BASE_URL: 'https://api.openai.com/v1',
+    OPENAI_MAX_TOKENS: 400,
   },
 }));
 
@@ -24,6 +25,7 @@ const context: ChatAppContext = {
     description: 'Test platform',
     roles: ['student'],
     grading: 'Marks 0-100',
+    ui: { theme: 'toggle', chat: 'navbar' },
     navigation: { student: ['Assignments'] },
   },
   user: { name: 'Sam', email: 's@test.com', role: 'student' },
@@ -53,10 +55,7 @@ describe('chat.llm', () => {
   });
 
   it('calls OpenAI-compatible chat completions', async () => {
-    const reply = await generateLlmReply('How many classes?', user, context, [
-      { role: 'user', content: 'Hi' },
-      { role: 'assistant', content: 'Hello!' },
-    ]);
+    const reply = await generateLlmReply('How many classes?', user, context, [], []);
 
     expect(reply).toContain('Math');
     expect(fetch).toHaveBeenCalledWith(

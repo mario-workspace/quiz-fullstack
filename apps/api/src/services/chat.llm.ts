@@ -1,27 +1,19 @@
 import { config } from '../config';
 import type { JwtPayload } from './auth.service';
 import type { ChatAppContext } from './chat.context';
+import { compactLiveContext } from './chat.context';
+import { formatRagContext, type RagMatch } from './chat.rag';
 
 export interface ChatTurn {
   role: 'user' | 'assistant';
   content: string;
 }
 
-const SYSTEM_PROMPT = `You are the School Portal AI assistant — a helpful, warm, human-like guide embedded in an educational SaaS platform (similar to Canvas).
+const SYSTEM_PROMPT = `You are the School Portal AI assistant on a Canvas-style school platform.
 
-Your job:
-- Answer questions about this platform, school workflows, and the signed-in user's data.
-- Use the JSON context below for accurate names, counts, and role-specific capabilities.
-- Explain how to complete tasks in the UI (where to click, what pages to use).
-- Keep replies concise and friendly (usually 2–4 short paragraphs or a short bullet list).
-- Use plain language; avoid sounding like a FAQ robot.
-
-Rules:
-- Grades are MARKS (0–100 numbers), never percentages — say "85 marks" not "85%".
-- Use liveData numbers exactly; never invent class counts, marks, or user details.
-- You cannot perform actions (submit work, enroll students, change grades) — guide the user instead.
-- Stay on topic: school portal, classes, assignments, marks, and school life on this platform.
-- If asked something outside the portal, politely redirect to what you can help with here.`;
+Use ONLY the retrieved knowledge and live user data below. Be concise (2–3 short paragraphs max).
+Marks are 0–100 numbers, never percentages. You cannot perform actions — explain UI steps instead.
+If retrieved knowledge answers the question, prefer it. Never invent counts or user details.`;
 
 export function isLlmConfigured(): boolean {
   return Boolean(config.OPENAI_API_KEY?.trim());
@@ -32,37 +24,42 @@ export async function generateLlmReply(
   user: JwtPayload,
   context: ChatAppContext,
   history: ChatTurn[] = [],
+  ragMatches: RagMatch[] = [],
 ): Promise<string> {
   const apiKey = config.OPENAI_API_KEY?.trim();
   if (!apiKey) {
     throw new Error('LLM not configured');
   }
 
-  const contextBlock = JSON.stringify(
+  const ragBlock = formatRagContext(ragMatches);
+  const liveBlock = JSON.stringify(
     {
-      signedInUser: context.user,
-      platform: context.platform,
-      liveData: context.liveData,
+      platform: {
+        name: context.platform.name,
+        grading: context.platform.grading,
+        ui: context.platform.ui,
+      },
+      live: compactLiveContext(context),
     },
     null,
-    2,
+    0,
   );
 
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     {
       role: 'system',
-      content: `${SYSTEM_PROMPT}\n\n--- APP CONTEXT (authoritative) ---\n${contextBlock}`,
+      content: `${SYSTEM_PROMPT}\n\n--- RETRIEVED KNOWLEDGE ---\n${ragBlock}\n\n--- LIVE DATA ---\n${liveBlock}`,
     },
   ];
 
-  for (const turn of history.slice(-10)) {
-    messages.push({ role: turn.role, content: turn.content.slice(0, 2000) });
+  for (const turn of history.slice(-6)) {
+    messages.push({ role: turn.role, content: turn.content.slice(0, 800) });
   }
 
-  messages.push({ role: 'user', content: message.slice(0, 2000) });
+  messages.push({ role: 'user', content: message.slice(0, 1200) });
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45_000);
+  const timeout = setTimeout(() => controller.abort(), 30_000);
 
   try {
     const res = await fetch(`${config.OPENAI_BASE_URL}/chat/completions`, {
@@ -74,8 +71,8 @@ export async function generateLlmReply(
       body: JSON.stringify({
         model: config.OPENAI_MODEL,
         messages,
-        temperature: 0.65,
-        max_tokens: 600,
+        temperature: 0.55,
+        max_tokens: config.OPENAI_MAX_TOKENS,
       }),
       signal: controller.signal,
     });

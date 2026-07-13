@@ -8,6 +8,12 @@ import * as teacherGroupService from './teacher-group.service';
 import { buildChatContext } from './chat.context';
 import { generateLlmReply, isLlmConfigured, type ChatTurn } from './chat.llm';
 import {
+  answerFromRag,
+  buildChatCacheKey,
+  retrieveRelevantKnowledge,
+} from './chat.rag';
+import { cacheGet, cacheSet } from './cache.service';
+import {
   DATA_REPLY_INTROS,
   humanizeDataReply,
   matchConversationalIntent,
@@ -44,13 +50,43 @@ export async function answerQuestion(
     ]);
   }
 
+  const normalized = normalizeForMatch(trimmed);
+
+  if (
+    isDataQuery(normalized) ||
+    matchesAny(normalized, WHO_AM_I_PHRASES) ||
+    matchesAny(normalized, HELP_MENU_PHRASES)
+  ) {
+    return answerWithRules(trimmed, user);
+  }
+
+  const ragMatches = retrieveRelevantKnowledge(trimmed, user.role);
+
+  const cacheKey = buildChatCacheKey(user, trimmed);
+  const cached = await cacheGet<string>(cacheKey);
+  if (cached) return cached;
+
+  const ragDirect = answerFromRag(ragMatches);
+  if (ragDirect && !isLlmConfigured()) {
+    await cacheSet(cacheKey, ragDirect, 3600);
+    return ragDirect;
+  }
+
   if (isLlmConfigured()) {
     try {
       const context = await buildChatContext(user);
-      return await generateLlmReply(trimmed, user, context, options.history ?? []);
+      const reply = await generateLlmReply(trimmed, user, context, options.history ?? [], ragMatches);
+      await cacheSet(cacheKey, reply, 3600);
+      return reply;
     } catch {
-      // Fall back to rule-based replies if the LLM is unavailable.
+      if (ragDirect) {
+        await cacheSet(cacheKey, ragDirect, 3600);
+        return ragDirect;
+      }
     }
+  } else if (ragDirect) {
+    await cacheSet(cacheKey, ragDirect, 3600);
+    return ragDirect;
   }
 
   return answerWithRules(trimmed, user);

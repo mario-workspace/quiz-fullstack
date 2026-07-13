@@ -12,14 +12,21 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Use installed Chrome locally when Playwright browser CDN download fails.
+        ...(process.env.CI ? {} : { channel: 'chrome' }),
+      },
+    },
   ],
   webServer: process.env.CI
     ? undefined
     : {
         command: 'npm run dev',
         url: 'http://localhost:3000',
-        reuseExistingServer: false,
+        reuseExistingServer: true,
         timeout: 120000,
         env: {
           ...process.env,

@@ -12,6 +12,7 @@ export interface ChatAppContext {
     description: string;
     roles: string[];
     grading: string;
+    ui: { theme: string; chat: string };
     navigation: Record<string, string[]>;
   };
   user: {
@@ -29,6 +30,10 @@ const PLATFORM_INFO = {
   roles: ['admin', 'teacher', 'student'],
   grading:
     'Teachers mark submissions with numeric marks from 0–100 (displayed as marks, not percentages). Feedback is optional.',
+  ui: {
+    theme: 'Light, dark, and system theme via the sun/moon toggle in the navbar (right-click for Light/Dark/System).',
+    chat: 'AI assistant available from the chat icon in the navbar.',
+  },
   navigation: {
     admin: ['Users', 'Teacher Groups', 'Dashboard overview'],
     teacher: ['Classes', 'Assignments', 'Submissions & marking'],
@@ -57,7 +62,7 @@ export async function buildChatContext(user: JwtPayload): Promise<ChatAppContext
   if (user.role === 'teacher') {
     const [stats, classes, assignments] = await Promise.all([
       classService.getTeacherStats(user.sub),
-      classService.listClasses(user.sub),
+      classService.listTeacherClasses(user.sub),
       assignmentService.listTeacherAssignments(user.sub),
     ]);
     liveData.teacherStats = stats;
@@ -96,4 +101,36 @@ export async function buildChatContext(user: JwtPayload): Promise<ChatAppContext
     user: { name: user.name, email: user.email, role: user.role },
     liveData,
   };
+}
+
+/** Compact live snapshot for free-tier LLM calls (fewer tokens). */
+export function compactLiveContext(context: ChatAppContext): Record<string, unknown> {
+  const { user, liveData } = context;
+  const compact: Record<string, unknown> = {
+    user: `${user.name} (${user.role})`,
+  };
+
+  if (user.role === 'admin') {
+    compact.school = {
+      classes: liveData.totalClasses,
+      teachers: liveData.activeTeachers,
+      students: liveData.activeStudents,
+      teacherGroups: liveData.teacherGroups,
+    };
+  }
+
+  if (user.role === 'teacher') {
+    compact.classes = liveData.classes;
+    compact.assignments = liveData.assignments;
+    compact.stats = liveData.teacherStats;
+  }
+
+  if (user.role === 'student') {
+    compact.classes = liveData.classes;
+    compact.assignments = liveData.assignments;
+    compact.marks = liveData.marks;
+    compact.stats = liveData.studentStats;
+  }
+
+  return compact;
 }

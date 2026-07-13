@@ -154,7 +154,7 @@ export function StudentAssignmentsDashboard() {
                       <th className="pb-3 pr-4 font-medium">Assignment</th>
                       <th className="pb-3 pr-4 font-medium">Class</th>
                       <th className="pb-3 pr-4 font-medium">Due Date</th>
-                      <th className="pb-3 pr-4 font-medium">Marks</th>
+                      <th className="pb-3 pr-4 font-medium">Grade</th>
                       <th className="pb-3 pr-4 font-medium">Status</th>
                       <th className="pb-3 font-medium">Actions</th>
                     </tr>

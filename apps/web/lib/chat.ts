@@ -10,7 +10,7 @@ export interface ChatMessage {
 export const CHAT_WELCOME_MESSAGE: ChatMessage = {
   role: 'assistant',
   content:
-    "Hi! I'm your AI assistant for School Portal — I know this platform and your school data.\nTry: \"Who am I?\" · \"How many classes do I have?\" · \"How do I submit homework?\"",
+    "Hi! I'm your AI assistant for School Portal.\n\nAsk me anything — classes, assignments, grades, navigation, or dark mode.\nTry: \"Who am I?\" · \"How do I submit homework?\" · \"Switch to dark mode\"",
 };
 
 export async function sendChatMessage(

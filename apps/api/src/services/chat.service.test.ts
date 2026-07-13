@@ -44,6 +44,11 @@ vi.mock('./chat.context', () => ({
   buildChatContext: vi.fn(),
 }));
 
+vi.mock('./cache.service', () => ({
+  cacheGet: vi.fn().mockResolvedValue(null),
+  cacheSet: vi.fn().mockResolvedValue(undefined),
+}));
+
 import * as classService from './class.service';
 import * as statsService from './stats.service';
 import { isLlmConfigured, generateLlmReply } from './chat.llm';
@@ -118,6 +123,12 @@ describe('answerQuestion', () => {
     expect(reply.toLowerCase()).not.toContain('try asking');
   });
 
+  it('uses RAG when LLM is not configured', async () => {
+    vi.mocked(isLlmConfigured).mockReturnValue(false);
+    const reply = await answerQuestion('how do I log out', studentUser);
+    expect(reply.toLowerCase()).toMatch(/logout/);
+  });
+
   it('uses the LLM when configured', async () => {
     vi.mocked(isLlmConfigured).mockReturnValue(true);
     vi.mocked(buildChatContext).mockResolvedValue({
@@ -126,6 +137,7 @@ describe('answerQuestion', () => {
         description: 'Test',
         roles: ['student'],
         grading: 'marks',
+        ui: { theme: 'toggle', chat: 'navbar' },
         navigation: {},
       },
       user: { name: 'Alex Student', email: 'student@test.com', role: 'student' },

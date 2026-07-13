@@ -146,18 +146,6 @@ export function AssignmentViewDialog({
               readOnly
             />
           </div>
-          {isGraded && (
-            <div className="space-y-1 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
-              {grade?.feedback?.trim() ? (
-                <p className="text-muted-foreground">
-                  <span className="font-medium text-foreground">Teacher feedback:</span>{' '}
-                  {grade.feedback}
-                </p>
-              ) : (
-                <p className="text-muted-foreground">No teacher feedback provided.</p>
-              )}
-            </div>
-          )}
           <div className="space-y-2">
             <Label htmlFor="assignment-work">Your Work</Label>
             <textarea
@@ -174,6 +162,18 @@ export function AssignmentViewDialog({
               <p className="text-xs text-muted-foreground">{readOnlyMessage}</p>
             )}
           </div>
+          {isGraded && (
+            <div className="space-y-1 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
+              {grade?.feedback?.trim() ? (
+                <p className="text-muted-foreground">
+                  <span className="font-medium text-foreground">Teacher feedback:</span>{' '}
+                  {grade.feedback}
+                </p>
+              ) : (
+                <p className="text-muted-foreground">No teacher feedback provided.</p>
+              )}
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Close
@@ -195,7 +195,7 @@ export function getAssignmentStatus(assignment: Assignment): {
   variant: 'success' | 'secondary' | 'destructive';
 } {
   const pastDue = isPastDue(assignment.due_date);
-  if (assignment.score != null) return { label: 'Marked', variant: 'success' };
+  if (assignment.score != null) return { label: 'Graded', variant: 'success' };
   if (assignment.submission_id) return { label: 'Submitted', variant: 'secondary' };
   if (pastDue) return { label: 'Overdue', variant: 'destructive' };
   return { label: 'Pending', variant: 'secondary' };

@@ -12,7 +12,12 @@
   --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
   --border: 214 32% 91%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 76% 36%;
+  --success-foreground: 210 40% 98%;
   --radius: 0.5rem;
+  color-scheme: light;
 }
 
 .dark {
@@ -25,6 +30,11 @@
   --muted: 217 33% 17%;
   --muted-foreground: 215 20% 65%;
   --border: 217 33% 17%;
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 70% 45%;
+  --success-foreground: 222 47% 11%;
+  color-scheme: dark;
 }
 
 @layer base {

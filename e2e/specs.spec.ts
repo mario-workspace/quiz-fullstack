@@ -21,7 +21,7 @@ test.describe('SPECS.md — UI flows', () => {
     await page.getByLabel('Password').fill('admin123');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await expect(page).toHaveURL(/\/dashboard\/admin/, { timeout: 20000 });
-    await expect(page.getByText(/admin|users|dashboard/i).first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'User Management' })).toBeVisible();
   });
 
   test('unauthenticated user cannot access dashboard', async ({ page }) => {

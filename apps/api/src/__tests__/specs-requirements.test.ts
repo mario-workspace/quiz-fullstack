@@ -157,6 +157,12 @@ describe('README.md — project setup', () => {
   it('includes GitHub Actions CI workflow', () => {
     expect(fs.existsSync(path.join(repoRoot, '.github/workflows/ci.yml'))).toBe(true);
   });
+
+  it('includes theme support (light/dark/system)', () => {
+    expect(fs.existsSync(path.join(repoRoot, 'apps/web/lib/theme.ts'))).toBe(true);
+    const css = fs.readFileSync(path.join(repoRoot, 'apps/web/app/globals.css'), 'utf8');
+    expect(css).toContain('.dark');
+  });
 });
 
 describe('SPECS.md — authentication', () => {
@@ -599,6 +605,12 @@ describe('SPECS.md — Chatbot (extra credit)', () => {
     expect(typeof res.body.reply).toBe('string');
     expect(res.body.reply.length).toBeGreaterThan(10);
     await closeTestApp(app);
+  });
+
+  it('indexes RAG knowledge for chatbot', async () => {
+    const { getCorpusSize, retrieveRelevantKnowledge } = await import('../services/chat.rag');
+    expect(getCorpusSize()).toBeGreaterThan(20);
+    expect(retrieveRelevantKnowledge('submit homework', 'student').length).toBeGreaterThan(0);
   });
 
   it('POST /chat requires authentication', async () => {
