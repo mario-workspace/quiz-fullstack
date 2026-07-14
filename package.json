@@ -18,6 +18,7 @@
     "start:web": "next start apps/web -p 3000",
     "start": "node scripts/dev.mjs",
     "db:migrate": "vite-node scripts/migrate.mjs",
+    "db:seed": "vite-node scripts/seed.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
